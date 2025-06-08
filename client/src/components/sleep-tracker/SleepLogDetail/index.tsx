@@ -67,12 +67,12 @@ export const SleepLogDetail: React.FC<SleepLogDetailProps> = ({
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-lg p-6 max-w-md mx-auto">
+    <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6 max-w-md mx-auto">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-semibold">수면 기록 상세</h2>
         <button 
           onClick={onClose}
-          className="text-gray-500 hover:text-gray-700"
+          className="text-gray-500 hover:text-gray-700 p-2 rounded-full hover:bg-gray-100"
           aria-label="닫기"
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -90,29 +90,29 @@ export const SleepLogDetail: React.FC<SleepLogDetailProps> = ({
       <div className="space-y-4">
         <div>
           <h3 className="text-sm font-medium text-gray-500">날짜</h3>
-          <p className="mt-1">{formatDate(log.sleepTime)}</p>
+          <p className="mt-1 text-base">{formatDate(log.sleepTime)}</p>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <h3 className="text-sm font-medium text-gray-500">취침 시간</h3>
-            <p className="mt-1">{formatTime(log.sleepTime)}</p>
+            <p className="mt-1 text-base">{formatTime(log.sleepTime)}</p>
           </div>
           <div>
             <h3 className="text-sm font-medium text-gray-500">기상 시간</h3>
-            <p className="mt-1">{formatTime(log.wakeTime)}</p>
+            <p className="mt-1 text-base">{formatTime(log.wakeTime)}</p>
           </div>
         </div>
 
         <div>
           <h3 className="text-sm font-medium text-gray-500">수면 시간</h3>
-          <p className="mt-1">{formatDuration(log.sleepDuration)}</p>
+          <p className="mt-1 text-base">{formatDuration(log.sleepDuration)}</p>
         </div>
 
         <div>
           <h3 className="text-sm font-medium text-gray-500">수면 품질</h3>
           <div className="mt-1 flex items-center">
-            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium ${getQualityColor(log.quality)}`}>
+            <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getQualityColor(log.quality)}`}>
               {log.quality}/10 - {getQualityLabel(log.quality)}
             </span>
           </div>
@@ -121,30 +121,32 @@ export const SleepLogDetail: React.FC<SleepLogDetailProps> = ({
         {log.notes && (
           <div>
             <h3 className="text-sm font-medium text-gray-500">메모</h3>
-            <p className="mt-1 text-gray-900 whitespace-pre-line">{log.notes}</p>
+            <p className="mt-1 text-base text-gray-900 whitespace-pre-line">{log.notes}</p>
           </div>
         )}
 
         <div className="pt-4 border-t border-gray-200">
           <h3 className="text-sm font-medium text-gray-500">기록 정보</h3>
-          <div className="mt-1 grid grid-cols-2 gap-2 text-sm text-gray-500">
+          <div className="mt-1 grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-gray-500">
             <p>생성: {new Date(log.createdAt).toLocaleString('ko-KR')}</p>
             <p>수정: {new Date(log.updatedAt).toLocaleString('ko-KR')}</p>
           </div>
         </div>
       </div>
 
-      <div className="mt-6 flex justify-end space-x-3">
+      <div className="mt-6 flex flex-col sm:flex-row sm:justify-end space-y-3 sm:space-y-0 sm:space-x-3">
         <button
           onClick={onEdit}
-          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+          className="w-full sm:w-auto px-4 py-3 sm:py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors text-base font-medium"
+          aria-label="수면 기록 수정"
         >
           수정
         </button>
         <button
           onClick={handleDelete}
           disabled={isDeleting}
-          className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors disabled:opacity-50"
+          className="w-full sm:w-auto px-4 py-3 sm:py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors disabled:opacity-50 text-base font-medium"
+          aria-label="수면 기록 삭제"
         >
           {isDeleting ? '삭제 중...' : '삭제'}
         </button>

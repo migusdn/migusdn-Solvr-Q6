@@ -1,5 +1,5 @@
 // server/src/services/sleepLogService.ts
-import { eq, and, gte, lte } from 'drizzle-orm'
+import { eq, and, gte, lte, sql, count } from 'drizzle-orm'
 import { sleepLogs } from '../db/schema'
 import { CreateSleepLogDto, UpdateSleepLogDto, SleepLog, SleepLogFilterDto } from '../types'
 import { Database } from '../types/database'
@@ -12,7 +12,7 @@ type SleepLogServiceDeps = {
 const calculateSleepDuration = (sleepTime: string, wakeTime: string): number => {
   const sleepDate = new Date(sleepTime)
   const wakeDate = new Date(wakeTime)
-  
+
   // 밀리초 단위 차이를 분 단위로 변환
   return Math.round((wakeDate.getTime() - sleepDate.getTime()) / (1000 * 60))
 }
@@ -20,30 +20,36 @@ const calculateSleepDuration = (sleepTime: string, wakeTime: string): number => 
 export const createSleepLogService = ({ db }: SleepLogServiceDeps) => {
   const getSleepLogs = async (filter?: SleepLogFilterDto): Promise<{ data: SleepLog[]; total: number }> => {
     const { startDate, endDate, limit = 10, offset = 0 } = filter || {}
-    
+
     let query = db.select().from(sleepLogs)
-    
+
     // 날짜 필터 적용
+    let whereConditions = []
+
     if (startDate && endDate) {
-      query = query.where(
+      whereConditions.push(
         and(
           gte(sleepLogs.sleepTime, startDate),
           lte(sleepLogs.wakeTime, endDate)
         )
       )
     } else if (startDate) {
-      query = query.where(gte(sleepLogs.sleepTime, startDate))
+      whereConditions.push(gte(sleepLogs.sleepTime, startDate))
     } else if (endDate) {
-      query = query.where(lte(sleepLogs.wakeTime, endDate))
+      whereConditions.push(lte(sleepLogs.wakeTime, endDate))
     }
-    
+
+    if (whereConditions.length > 0) {
+      query = query.where(whereConditions.length === 1 ? whereConditions[0] : and(...whereConditions))
+    }
+
     // 전체 개수 조회
-    const countQuery = db.select({ count: db.fn.count() }).from(sleepLogs)
+    const countQuery = db.select({ count: count() }).from(sleepLogs)
     const [{ count }] = await countQuery
-    
+
     // 페이지네이션 적용
     query = query.limit(limit).offset(offset)
-    
+
     const data = await query
     return { data, total: Number(count) }
   }
@@ -55,30 +61,33 @@ export const createSleepLogService = ({ db }: SleepLogServiceDeps) => {
 
   const getSleepLogsByUserId = async (userId: number, filter?: SleepLogFilterDto): Promise<{ data: SleepLog[]; total: number }> => {
     const { startDate, endDate, limit = 10, offset = 0 } = filter || {}
-    
-    let query = db.select().from(sleepLogs).where(eq(sleepLogs.userId, userId))
-    
+
+    // 기본 조건: 사용자 ID로 필터링
+    let whereConditions = [eq(sleepLogs.userId, userId)]
+
     // 날짜 필터 적용
     if (startDate && endDate) {
-      query = query.where(
+      whereConditions.push(
         and(
           gte(sleepLogs.sleepTime, startDate),
           lte(sleepLogs.wakeTime, endDate)
         )
       )
     } else if (startDate) {
-      query = query.where(gte(sleepLogs.sleepTime, startDate))
+      whereConditions.push(gte(sleepLogs.sleepTime, startDate))
     } else if (endDate) {
-      query = query.where(lte(sleepLogs.wakeTime, endDate))
+      whereConditions.push(lte(sleepLogs.wakeTime, endDate))
     }
-    
+
+    let query = db.select().from(sleepLogs).where(whereConditions.length === 1 ? whereConditions[0] : and(...whereConditions))
+
     // 전체 개수 조회
-    const countQuery = db.select({ count: db.fn.count() }).from(sleepLogs).where(eq(sleepLogs.userId, userId))
+    const countQuery = db.select({ count: count() }).from(sleepLogs).where(eq(sleepLogs.userId, userId))
     const [{ count }] = await countQuery
-    
+
     // 페이지네이션 적용
     query = query.limit(limit).offset(offset)
-    
+
     const data = await query
     return { data, total: Number(count) }
   }
@@ -87,14 +96,14 @@ export const createSleepLogService = ({ db }: SleepLogServiceDeps) => {
     // 수면 시간 유효성 검증
     const sleepTime = new Date(sleepLogData.sleepTime)
     const wakeTime = new Date(sleepLogData.wakeTime)
-    
+
     if (sleepTime >= wakeTime) {
       throw new Error('취침 시간은 기상 시간보다 이전이어야 합니다.')
     }
-    
+
     // 수면 시간 계산
     const sleepDuration = calculateSleepDuration(sleepLogData.sleepTime, sleepLogData.wakeTime)
-    
+
     const now = new Date().toISOString()
     const newSleepLog = {
       ...sleepLogData,
@@ -113,22 +122,22 @@ export const createSleepLogService = ({ db }: SleepLogServiceDeps) => {
     if (!existingSleepLog) {
       return undefined
     }
-    
+
     // 수면 시간 계산을 위한 데이터 준비
     const sleepTime = sleepLogData.sleepTime || existingSleepLog.sleepTime
     const wakeTime = sleepLogData.wakeTime || existingSleepLog.wakeTime
-    
+
     // 수면 시간 유효성 검증
     const sleepDate = new Date(sleepTime)
     const wakeDate = new Date(wakeTime)
-    
+
     if (sleepDate >= wakeDate) {
       throw new Error('취침 시간은 기상 시간보다 이전이어야 합니다.')
     }
-    
+
     // 수면 시간 계산
     const sleepDuration = calculateSleepDuration(sleepTime, wakeTime)
-    
+
     const now = new Date().toISOString()
     const updateData = {
       ...sleepLogData,

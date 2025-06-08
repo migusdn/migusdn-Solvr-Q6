@@ -151,7 +151,7 @@ async function main() {
       newUsers.push({
         name: `Test User ${i + 1}`,
         email: `test${i + 1}@example.com`,
-        role: 'USER'
+        role: 'USER' as const
       });
     }
 
