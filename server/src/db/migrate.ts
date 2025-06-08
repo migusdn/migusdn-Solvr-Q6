@@ -24,7 +24,7 @@ const initialUsers = [
   {
     name: '관리자',
     email: 'admin@example.com',
-    password: '$2b$10$6Bnl2PeqQsXPVHp.QY.zHuQwZ/Bj0dGpJvZYWxTKmY5ABFxazPgOC', // password: admin123
+    password: '$2b$10$P70YqKlDWE2nVdfOryNZbOxD42m.9DIFWYze.CfLtG/UXIG8jRPSG', // password: test123
     role: UserRole.ADMIN,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
@@ -32,7 +32,7 @@ const initialUsers = [
   {
     name: '일반 사용자',
     email: 'user@example.com',
-    password: '$2b$10$6Bnl2PeqQsXPVHp.QY.zHuQwZ/Bj0dGpJvZYWxTKmY5ABFxazPgOC', // password: admin123
+    password: '$2b$10$P70YqKlDWE2nVdfOryNZbOxD42m.9DIFWYze.CfLtG/UXIG8jRPSG', // password: test123
     role: UserRole.USER,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
@@ -40,7 +40,7 @@ const initialUsers = [
   {
     name: '게스트',
     email: 'guest@example.com',
-    password: '$2b$10$6Bnl2PeqQsXPVHp.QY.zHuQwZ/Bj0dGpJvZYWxTKmY5ABFxazPgOC', // password: admin123
+    password: '$2b$10$P70YqKlDWE2nVdfOryNZbOxD42m.9DIFWYze.CfLtG/UXIG8jRPSG', // password: test123
     role: UserRole.GUEST,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()

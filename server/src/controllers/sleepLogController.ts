@@ -93,6 +93,16 @@ export const createSleepLogController = ({ sleepLogService }: SleepLogController
         return reply.code(400).send(createErrorResponse('취침 시간과 기상 시간은 필수 입력 항목입니다.'))
       }
 
+      // 사용자 ID가 없는 경우 인증된 사용자의 ID 사용
+      if (!sleepLogData.userId && request.user) {
+        sleepLogData.userId = request.user.id
+      }
+
+      // 사용자 ID 검증
+      if (!sleepLogData.userId) {
+        return reply.code(400).send(createErrorResponse('사용자 ID는 필수 입력 항목입니다.'))
+      }
+
       // 수면 시간 유효성 검증
       const sleepTime = new Date(sleepLogData.sleepTime)
       const wakeTime = new Date(sleepLogData.wakeTime)
