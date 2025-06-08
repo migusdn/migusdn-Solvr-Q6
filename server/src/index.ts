@@ -1,10 +1,12 @@
 import Fastify from 'fastify'
 import cors from '@fastify/cors'
+import cookie from '@fastify/cookie'
 import env from './config/env'
 import { initializeDatabase, getDb } from './db'
 import runMigration from './db/migrate'
 import { createUserService } from './services/userService'
 import { createSleepLogService } from './services/sleepLogService'
+import { createAuthService } from './services/authService'
 import { createRoutes } from './routes'
 import { AppContext } from './types/context'
 
@@ -32,15 +34,23 @@ async function start() {
       credentials: true
     })
 
+    // 쿠키 설정
+    await fastify.register(cookie, {
+      secret: env.JWT_ACCESS_SECRET,
+      hook: 'onRequest'
+    })
+
     // 데이터베이스 마이그레이션 및 초기화
     await runMigration()
     await initializeDatabase()
 
     // 서비스 및 컨텍스트 초기화
     const db = await getDb()
+    const userService = createUserService({ db })
     const context: AppContext = {
-      userService: createUserService({ db }),
-      sleepLogService: createSleepLogService({ db })
+      userService,
+      sleepLogService: createSleepLogService({ db }),
+      authService: createAuthService({ userService })
     }
 
     // 라우트 등록
