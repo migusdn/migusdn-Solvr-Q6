@@ -1,8 +1,10 @@
 import { Outlet, Link } from 'react-router-dom'
-import { useState } from 'react'
+import { useState, useContext } from 'react'
+import { AuthContext } from '../contexts/AuthContext'
 
 const MainLayout = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { isAuthenticated, logout } = useContext(AuthContext);
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -83,6 +85,21 @@ const MainLayout = () => {
               >
                 수면 트래커
               </Link>
+              {isAuthenticated ? (
+                <button
+                  onClick={logout}
+                  className="text-neutral-600 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium"
+                >
+                  로그아웃
+                </button>
+              ) : (
+                <Link
+                  to="/login"
+                  className="text-neutral-600 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium"
+                >
+                  로그인
+                </Link>
+              )}
             </nav>
           </div>
 
@@ -110,6 +127,25 @@ const MainLayout = () => {
               >
                 수면 트래커
               </Link>
+              {isAuthenticated ? (
+                <button
+                  onClick={() => {
+                    logout();
+                    setIsMenuOpen(false);
+                  }}
+                  className="block w-full text-left text-neutral-600 hover:text-primary-600 px-3 py-2 rounded-md text-base font-medium"
+                >
+                  로그아웃
+                </button>
+              ) : (
+                <Link
+                  to="/login"
+                  className="block text-neutral-600 hover:text-primary-600 px-3 py-2 rounded-md text-base font-medium"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  로그인
+                </Link>
+              )}
             </div>
           </div>
         </div>
