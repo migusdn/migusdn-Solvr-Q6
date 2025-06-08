@@ -11,7 +11,7 @@ import SleepAIAnalysisCard from '../SleepAIAnalysisCard'
 
 const SleepStatsDashboard: React.FC = () => {
   const { user } = useAuth()
-  const [period, setPeriod] = useState<string>('daily')
+  const [period, setPeriod] = useState<'daily' | 'weekly' | 'monthly' | 'yearly'>('daily')
   const [startDate, setStartDate] = useState<string>('')
   const [endDate, setEndDate] = useState<string>('')
   const [summaryData, setSummaryData] = useState<SleepStatsResponse | null>(null)
