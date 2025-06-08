@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { SleepLog, SleepLogFilters } from '../../../types/sleep-log';
 import { sleepLogService } from '../../../services/api';
 import SwipeableListItem from '../SwipeableListItem';
@@ -21,31 +21,9 @@ export const SleepLogList: React.FC<SleepLogListProps> = ({
   const [logs, setLogs] = useState<SleepLog[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [page, setPage] = useState<number>(0);
-  const [hasMore, setHasMore] = useState<boolean>(true);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [totalPages, setTotalPages] = useState<number>(1);
   const PAGE_SIZE = 10;
-
-  // Reference for the observer
-  const observer = useRef<IntersectionObserver | null>(null);
-
-  // Reference for the last list item element
-  const lastLogElementRef = useCallback((node: HTMLLIElement | null) => {
-    if (loading) return;
-
-    // Disconnect the previous observer if it exists
-    if (observer.current) observer.current.disconnect();
-
-    // Create a new observer
-    observer.current = new IntersectionObserver(entries => {
-      // If the last element is visible and we have more items to load
-      if (entries[0].isIntersecting && hasMore) {
-        loadMore();
-      }
-    }, { threshold: 0.5 });
-
-    // Observe the last element if it exists
-    if (node) observer.current.observe(node);
-  }, [loading, hasMore]);
 
   const fetchLogs = async (pageNum: number) => {
     try {
@@ -58,18 +36,23 @@ export const SleepLogList: React.FC<SleepLogListProps> = ({
       const pageFilters = {
         ...filters,
         limit: PAGE_SIZE,
-        offset: pageNum * PAGE_SIZE,
+        offset: (pageNum - 1) * PAGE_SIZE,
       };
 
       const data = await sleepLogService.getByUserId(user.id, pageFilters);
+      setLogs(data);
 
-      if (pageNum === 0) {
-        setLogs(data);
+      // Estimate total pages based on whether we got a full page of results
+      if (data.length < PAGE_SIZE && pageNum === 1) {
+        setTotalPages(1);
+      } else if (data.length < PAGE_SIZE) {
+        setTotalPages(pageNum);
       } else {
-        setLogs(prevLogs => [...prevLogs, ...data]);
+        // If we got a full page, there might be more pages
+        // We'll set totalPages to current page + 1 as a minimum
+        setTotalPages(Math.max(pageNum + 1, totalPages));
       }
 
-      setHasMore(data.length === PAGE_SIZE);
       setError(null);
     } catch (err) {
       setError('수면 기록을 불러오는데 실패했습니다.');
@@ -80,15 +63,16 @@ export const SleepLogList: React.FC<SleepLogListProps> = ({
   };
 
   useEffect(() => {
-    setPage(0);
-    fetchLogs(0);
+    setCurrentPage(1);
+    fetchLogs(1);
   }, [filters, user]);
 
-  const loadMore = () => {
-    if (!loading && hasMore) {
-      const nextPage = page + 1;
-      setPage(nextPage);
-      fetchLogs(nextPage);
+  const handlePageChange = (newPage: number) => {
+    if (newPage >= 1 && newPage <= totalPages && newPage !== currentPage) {
+      setCurrentPage(newPage);
+      fetchLogs(newPage);
+      // Scroll to top of the list
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
@@ -133,7 +117,7 @@ export const SleepLogList: React.FC<SleepLogListProps> = ({
         <div className="text-gray-500 p-4">기록된 수면 데이터가 없습니다.</div>
       ) : (
         <ul className="divide-y divide-gray-200">
-          {logs.map((log, index) => {
+          {logs.map((log) => {
             // Define swipe action buttons
             const leftAction = onDeleteLog && (
               <button 
@@ -158,7 +142,7 @@ export const SleepLogList: React.FC<SleepLogListProps> = ({
             );
 
             return (
-              <li key={log.id} ref={index === logs.length - 1 ? lastLogElementRef : null}>
+              <li key={log.id}>
                 <SwipeableListItem
                   onSwipeLeft={onDeleteLog ? () => onDeleteLog(log) : undefined}
                   onSwipeRight={onEditLog ? () => onEditLog(log) : undefined}
@@ -196,9 +180,58 @@ export const SleepLogList: React.FC<SleepLogListProps> = ({
         </div>
       )}
 
-      {hasMore && !loading && (
-        <div className="flex justify-center p-4">
-          <p className="text-sm text-gray-500">스크롤하여 더 많은 기록 불러오기</p>
+      {/* Pagination */}
+      {!loading && logs.length > 0 && (
+        <div className="flex justify-center mt-6">
+          <nav className="flex items-center space-x-2" aria-label="Pagination">
+            {/* Previous page button */}
+            <button
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+              className={`px-3 py-2 rounded-md ${
+                currentPage === 1
+                  ? 'text-gray-400 cursor-not-allowed'
+                  : 'text-gray-700 hover:bg-gray-100'
+              }`}
+              aria-label="이전 페이지"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
+              </svg>
+            </button>
+
+            {/* Page numbers */}
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <button
+                key={page}
+                onClick={() => handlePageChange(page)}
+                className={`px-4 py-2 rounded-md ${
+                  currentPage === page
+                    ? 'bg-indigo-600 text-white'
+                    : 'text-gray-700 hover:bg-gray-100'
+                }`}
+                aria-current={currentPage === page ? 'page' : undefined}
+              >
+                {page}
+              </button>
+            ))}
+
+            {/* Next page button */}
+            <button
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className={`px-3 py-2 rounded-md ${
+                currentPage === totalPages
+                  ? 'text-gray-400 cursor-not-allowed'
+                  : 'text-gray-700 hover:bg-gray-100'
+              }`}
+              aria-label="다음 페이지"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+              </svg>
+            </button>
+          </nav>
         </div>
       )}
     </div>
