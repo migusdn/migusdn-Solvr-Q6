@@ -7,6 +7,7 @@ import CreateUserPage from './routes/CreateUserPage'
 import EditUserPage from './routes/EditUserPage'
 import NotFoundPage from './routes/NotFoundPage'
 import SleepTrackerPage from './routes/SleepTrackerPage'
+import SleepStatsPage from './routes/SleepStatsPage'
 import LoginPage from './routes/LoginPage'
 import RegisterPage from './routes/RegisterPage'
 import ProtectedRoute from './components/ProtectedRoute'
@@ -51,6 +52,12 @@ function App() {
           <Route path="sleep-tracker" element={
             <ProtectedRoute>
               <SleepTrackerPage />
+            </ProtectedRoute>
+          } />
+
+          <Route path="sleep-stats" element={
+            <ProtectedRoute>
+              <SleepStatsPage />
             </ProtectedRoute>
           } />
 

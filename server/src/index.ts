@@ -5,6 +5,7 @@ import { initializeDatabase, getDb } from './db'
 import runMigration from './db/migrate'
 import { createUserService } from './services/userService'
 import { createSleepLogService } from './services/sleepLogService'
+import { createSleepStatsService } from './services/sleepStatsService'
 import { createAuthService } from './services/authService'
 import { createRoutes } from './routes'
 import { AppContext } from './types/context'
@@ -59,6 +60,7 @@ async function start() {
     const context: AppContext = {
       userService,
       sleepLogService: createSleepLogService({ db }),
+      sleepStatsService: createSleepStatsService({ db }),
       authService: createAuthService({ userService })
     }
 
