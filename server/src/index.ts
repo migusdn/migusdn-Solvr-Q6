@@ -6,6 +6,7 @@ import runMigration from './db/migrate'
 import { createUserService } from './services/userService'
 import { createSleepLogService } from './services/sleepLogService'
 import { createSleepStatsService } from './services/sleepStatsService'
+import { createSleepAIService } from './services/sleepAIService'
 import { createAuthService } from './services/authService'
 import { createRoutes } from './routes'
 import { AppContext } from './types/context'
@@ -57,10 +58,14 @@ async function start() {
     // 서비스 및 컨텍스트 초기화
     const db = await getDb()
     const userService = createUserService({ db })
+    const sleepLogService = createSleepLogService({ db })
+    const sleepStatsService = createSleepStatsService({ db })
+
     const context: AppContext = {
       userService,
-      sleepLogService: createSleepLogService({ db }),
-      sleepStatsService: createSleepStatsService({ db }),
+      sleepLogService,
+      sleepStatsService,
+      sleepAIService: createSleepAIService({ db, sleepStatsService }),
       authService: createAuthService({ userService })
     }
 
