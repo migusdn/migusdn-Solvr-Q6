@@ -1,6 +1,6 @@
 // server/src/services/sleepAIService.ts
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import { Database } from '../db';
+import { Database } from '../types/database';
 import { SleepStatsService } from './sleepStatsService';
 
 // 타입 정의
@@ -43,7 +43,7 @@ const getFallbackAnalysis = (userId: string, sleepData: any): SleepAIAnalysis =>
     sleepPattern: {
       summary: '수면 데이터 분석에 일시적인 문제가 발생했습니다.',
       averageDuration: sleepData.summary?.averageDuration || 0,
-      qualityScore: sleepData.summary?.averageQuality || 0,
+      qualityScore: (sleepData.summary?.averageQuality || 0) * 10,
       consistency: 0,
     },
     insights: [
@@ -74,12 +74,12 @@ const parseAIResponse = (text: string): Partial<SleepAIAnalysis> => {
     const recommendationsMatch = text.match(/개인화된 권장사항:(.*?)(?=$)/s);
 
     const summary = summaryMatch ? summaryMatch[1].trim() : '';
-    
+
     // 인사이트 파싱
     const insights: SleepAIAnalysis['insights'] = [];
     if (insightsMatch) {
       const insightsText = insightsMatch[1];
-      
+
       // 강점 파싱
       const strengthsMatch = insightsText.match(/강점:(.*?)(?=개선점:|경고사항:|$)/s);
       if (strengthsMatch) {
@@ -97,7 +97,7 @@ const parseAIResponse = (text: string): Partial<SleepAIAnalysis> => {
           }
         }
       }
-      
+
       // 개선점 파싱
       const improvementsMatch = insightsText.match(/개선점:(.*?)(?=강점:|경고사항:|$)/s);
       if (improvementsMatch) {
@@ -115,7 +115,7 @@ const parseAIResponse = (text: string): Partial<SleepAIAnalysis> => {
           }
         }
       }
-      
+
       // 경고사항 파싱
       const warningsMatch = insightsText.match(/경고사항:(.*?)(?=강점:|개선점:|$)/s);
       if (warningsMatch) {
@@ -134,13 +134,13 @@ const parseAIResponse = (text: string): Partial<SleepAIAnalysis> => {
         }
       }
     }
-    
+
     // 권장사항 파싱
     const recommendations: SleepAIAnalysis['recommendations'] = [];
     if (recommendationsMatch) {
       const recommendationsText = recommendationsMatch[1];
       const recommendationsLines = recommendationsText.trim().split('\n');
-      
+
       for (const line of recommendationsLines) {
         const cleanLine = line.replace(/^[•\-\*]\s*/, '').trim();
         if (cleanLine) {
@@ -152,9 +152,9 @@ const parseAIResponse = (text: string): Partial<SleepAIAnalysis> => {
                 ? 'medium' 
                 : 'low'
             : 'medium';
-          
+
           const titleDescMatch = cleanLine.replace(/\[(높음|중간|낮음)\]/, '').split(':');
-          
+
           if (titleDescMatch.length > 0) {
             recommendations.push({
               title: titleDescMatch[0].trim(),
@@ -166,10 +166,10 @@ const parseAIResponse = (text: string): Partial<SleepAIAnalysis> => {
         }
       }
     }
-    
+
     return {
       sleepPattern: {
-        summary,
+        summary: summary || '수면 패턴 분석을 완료했습니다.',
         averageDuration: 0, // 이 값들은 실제 데이터로 채워질 것입니다
         qualityScore: 0,
         consistency: 0,
@@ -188,15 +188,15 @@ const generateSleepAnalysis = async (sleepData: any, userId: string) => {
   // API 키 및 모델 설정
   const apiKey = process.env.GEMINI_API_KEY;
   const modelName = process.env.GEMINI_MODEL || 'gemini-pro';
-  
+
   if (!apiKey) {
     console.error('GEMINI_API_KEY가 설정되지 않았습니다.');
     return getFallbackAnalysis(userId, sleepData);
   }
-  
+
   const genAI = new GoogleGenerativeAI(apiKey);
   const model = genAI.getGenerativeModel({ model: modelName });
-  
+
   // 프롬프트 구성
   const prompt = `
     당신은 수면 분석 전문가입니다. 다음 사용자의 수면 데이터를 분석하고 인사이트와 개선 권장사항을 제공해주세요.
@@ -210,24 +210,24 @@ const generateSleepAnalysis = async (sleepData: any, userId: string) => {
     - 총 기록 수: ${sleepData.summary.totalLogs}회
 
     다음 형식으로 응답해주세요:
-    
+
     수면 패턴 요약: (1-2문장)
-    
+
     주요 인사이트:
     강점:
     - 강점1: 설명
     - 강점2: 설명
     - 강점3: 설명
-    
+
     개선점:
     - 개선점1: 설명
     - 개선점2: 설명
     - 개선점3: 설명
-    
+
     경고사항:
     - 경고1: 설명
     - 경고2: 설명
-    
+
     개인화된 권장사항:
     - [높음] 권장사항1: 설명
     - [중간] 권장사항2: 설명
@@ -246,14 +246,14 @@ const generateSleepAnalysis = async (sleepData: any, userId: string) => {
 
     // 응답 파싱 및 구조화
     const parsedResponse = parseAIResponse(text);
-    
+
     // 실제 수면 데이터로 일부 필드 채우기
     return {
       analysisId: `ai-${Date.now()}`,
       userId: userId.toString(),
       generatedAt: new Date().toISOString(),
       sleepPattern: {
-        ...parsedResponse.sleepPattern,
+        summary: parsedResponse.sleepPattern?.summary || '수면 패턴 분석을 완료했습니다.',
         averageDuration: sleepData.summary.averageDuration,
         qualityScore: sleepData.summary.averageQuality * 10, // 0-10 스케일을 0-100으로 변환
         consistency: Math.round(sleepData.summary.sleepEfficiency), // 일관성 점수로 수면 효율성 사용
@@ -272,46 +272,52 @@ export const createSleepAIService = ({ db, sleepStatsService }: SleepAIServiceDe
   // 캐시 설정
   const analysisCache = new Map<string, { data: SleepAIAnalysis; timestamp: number }>();
   const CACHE_TTL = 24 * 60 * 60 * 1000; // 24시간 (밀리초)
-  
+
   // 사용자 ID로 AI 분석 가져오기
   const getAnalysisByUserId = async (userId: string): Promise<SleepAIAnalysis> => {
     // 캐시 확인
     const cacheKey = `user-${userId}`;
     const cachedData = analysisCache.get(cacheKey);
     const now = Date.now();
-    
+
     // 캐시된 데이터가 있고 유효한 경우
     if (cachedData && (now - cachedData.timestamp) < CACHE_TTL) {
       return cachedData.data;
     }
-    
+
     try {
       // 사용자의 수면 통계 데이터 가져오기
-      const sleepStats = await sleepStatsService.getSummaryByUserId(parseInt(userId, 10));
-      
+      const today = new Date();
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(today.getDate() - 30);
+      const startDate = thirtyDaysAgo.toISOString().split('T')[0];
+      const endDate = today.toISOString().split('T')[0];
+
+      const sleepStats = await sleepStatsService.getSummary(parseInt(userId, 10), startDate, endDate);
+
       if (!sleepStats || sleepStats.summary.totalLogs === 0) {
         throw new Error('수면 데이터가 없습니다.');
       }
-      
+
       // AI 분석 생성
       const analysis = await generateSleepAnalysis(sleepStats, userId);
-      
+
       // 캐시에 저장
       analysisCache.set(cacheKey, { data: analysis, timestamp: now });
-      
+
       return analysis;
     } catch (error) {
       console.error(`사용자 ID ${userId}에 대한 AI 분석 생성 오류:`, error);
       throw error;
     }
   };
-  
+
   // 캐시 무효화
   const invalidateCache = (userId: string): void => {
     const cacheKey = `user-${userId}`;
     analysisCache.delete(cacheKey);
   };
-  
+
   return {
     getAnalysisByUserId,
     invalidateCache,
