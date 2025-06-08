@@ -2,6 +2,7 @@
 import { FastifyInstance } from 'fastify';
 import { AppContext } from '../types/context';
 import { createSleepAIController } from '../controllers/sleepAIController';
+import { authenticate } from '../middlewares/auth';
 
 export const createSleepAIRoutes = (context: AppContext) => async (fastify: FastifyInstance) => {
   // 컨트롤러 생성
@@ -10,13 +11,7 @@ export const createSleepAIRoutes = (context: AppContext) => async (fastify: Fast
   });
 
   // 인증 미들웨어 적용
-  fastify.addHook('preHandler', async (request, reply) => {
-    try {
-      await request.jwtVerify();
-    } catch (err) {
-      reply.send(err);
-    }
-  });
+  fastify.addHook('onRequest', authenticate);
 
   // 현재 사용자의 AI 분석 가져오기
   fastify.get('/ai-analysis', sleepAIController.getCurrentUserAnalysis);

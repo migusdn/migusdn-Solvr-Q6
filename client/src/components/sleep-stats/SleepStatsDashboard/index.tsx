@@ -161,6 +161,18 @@ const SleepStatsDashboard: React.FC = () => {
         </div>
       )}
 
+      {/* 인사이트 섹션 */}
+      {insights.length > 0 && (
+        <div className="bg-white rounded-lg shadow p-4">
+          <h3 className="text-lg font-medium mb-3">수면 인사이트</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {insights.map((insight, index) => (
+              <SleepInsightCard key={index} insight={insight} />
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* AI 수면 분석 카드 */}
       {summaryData && summaryData.summary.totalLogs > 0 && (
         <div className="mt-6">
@@ -222,17 +234,7 @@ const SleepStatsDashboard: React.FC = () => {
         </div>
       )}
 
-      {/* 인사이트 섹션 */}
-      {insights.length > 0 && (
-        <div className="bg-white rounded-lg shadow p-4">
-          <h3 className="text-lg font-medium mb-3">수면 인사이트</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {insights.map((insight, index) => (
-              <SleepInsightCard key={index} insight={insight} />
-            ))}
-          </div>
-        </div>
-      )}
+
 
       {/* 데이터가 없는 경우 */}
       {!loading && !error && (!summaryData || (summaryData.summary.totalLogs === 0)) && (
