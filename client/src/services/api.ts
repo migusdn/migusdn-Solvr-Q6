@@ -1,6 +1,7 @@
 import axios from 'axios'
 import { User, CreateUserDto, UpdateUserDto } from '../types/user'
 import { SleepLog, CreateSleepLogDto, UpdateSleepLogDto, SleepLogFilters } from '../types/sleep-log'
+import { SleepStatsResponse, PeriodStat, SleepInsight, SleepStatsFilters } from '../types/sleep-stats'
 import { getAccessToken } from '../utils/tokenUtils'
 
 // API 응답 타입
@@ -147,6 +148,36 @@ export const sleepLogService = {
 
   delete: async (id: string): Promise<void> => {
     await api.delete(`/sleep-logs/${id}`)
+  }
+}
+
+export const sleepStatsService = {
+  // 종합 수면 통계 조회
+  getSummary: async (filters: SleepStatsFilters): Promise<SleepStatsResponse> => {
+    const response = await api.get<ApiResponse<SleepStatsResponse>>('/sleep-stats/summary', { params: filters })
+    if (!response.data.data) {
+      throw new Error('수면 통계 정보를 불러오는데 실패했습니다.')
+    }
+    return response.data.data
+  },
+
+  // 기간별 수면 통계 조회
+  getPeriodStats: async (filters: SleepStatsFilters): Promise<PeriodStat[]> => {
+    const response = await api.get<ApiResponse<{ periodStats: PeriodStat[] }>>('/sleep-stats/period', { params: filters })
+    if (!response.data.data) {
+      throw new Error('기간별 수면 통계 정보를 불러오는데 실패했습니다.')
+    }
+    return response.data.data.periodStats || []
+  },
+
+  // 수면 인사이트 조회
+  getInsights: async (userId?: number): Promise<SleepInsight[]> => {
+    const params = userId ? { userId } : {}
+    const response = await api.get<ApiResponse<{ insights: SleepInsight[] }>>('/sleep-stats/insights', { params })
+    if (!response.data.data) {
+      throw new Error('수면 인사이트 정보를 불러오는데 실패했습니다.')
+    }
+    return response.data.data.insights || []
   }
 }
 
