@@ -2,6 +2,7 @@ import { FastifyInstance } from 'fastify'
 import { AppContext } from '../types/context'
 import { createUserRoutes } from './userRoutes'
 import { createSleepLogRoutes } from './sleepLogRoutes'
+import { createSleepStatsRoutes } from './sleepStatsRoutes'
 import { createAuthRoutes } from './authRoutes'
 import healthRoutes from './healthRoutes'
 
@@ -18,4 +19,7 @@ export const createRoutes = (context: AppContext) => async (fastify: FastifyInst
 
   // 수면 기록 관련 라우트
   fastify.register(createSleepLogRoutes(context), { prefix: '/api/sleep-logs' })
+
+  // 수면 통계 관련 라우트
+  fastify.register(createSleepStatsRoutes(context), { prefix: '/api/sleep-stats' })
 }
