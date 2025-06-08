@@ -147,11 +147,20 @@ export const SleepTracker: React.FC = () => {
       default:
         return (
           <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-0">
-              <h2 className="text-2xl font-bold">수면 기록</h2>
+            <div className="flex flex-col gap-4 mb-2 sm:mb-0">
+              <div className="flex flex-row items-center justify-between w-full">
+                <h2 className="text-xl sm:text-2xl font-bold">수면 기록</h2>
+                <Link
+                  to="/sleep-stats"
+                  className="bg-blue-500 text-white px-3 sm:px-4 py-2 text-sm sm:text-base rounded-lg hover:bg-blue-600 transition-colors"
+                >
+                  통계 보기
+                </Link>
+              </div>
+
               <button
                 onClick={handleCreateLog}
-                className="w-full sm:w-auto px-4 py-3 sm:py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-colors flex items-center justify-center sm:justify-start"
+                className="w-full sm:w-auto px-4 py-3 sm:py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-colors flex items-center justify-center shadow-sm"
                 aria-label="새 수면 기록 추가"
               >
                 <svg
@@ -170,9 +179,9 @@ export const SleepTracker: React.FC = () => {
               </button>
             </div>
 
-            <div className="bg-white rounded-lg shadow p-4 mb-6">
-              <h3 className="text-lg font-medium mb-3">기간 설정</h3>
-              <div className="flex flex-col sm:flex-row gap-4">
+            <div className="bg-white rounded-lg shadow p-3 sm:p-4 mb-4 sm:mb-6">
+              <h3 className="text-base sm:text-lg font-medium mb-2 sm:mb-3">기간 설정</h3>
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                 <div className="flex-1">
                   <label
                     htmlFor="startDate"
@@ -188,7 +197,7 @@ export const SleepTracker: React.FC = () => {
                       setStartDate(e.target.value)
                       setTimeout(handleDateRangeChange, 0)
                     }}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-2 sm:px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
                 <div className="flex-1">
@@ -203,17 +212,17 @@ export const SleepTracker: React.FC = () => {
                       setEndDate(e.target.value)
                       setTimeout(handleDateRangeChange, 0)
                     }}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-2 sm:px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
-                <div className="flex items-end">
+                <div className="flex items-end mt-2 sm:mt-0">
                   <button
                     onClick={() => {
                       setStartDate('')
                       setEndDate('')
                       setTimeout(handleDateRangeChange, 0)
                     }}
-                    className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors"
+                    className="w-full sm:w-auto px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors text-sm sm:text-base"
                   >
                     초기화
                   </button>
@@ -232,16 +241,7 @@ export const SleepTracker: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">수면 트래커</h1>
-        <Link
-          to="/sleep-stats"
-          className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
-        >
-          통계 보기
-        </Link>
-      </div>
+    <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-8 max-w-4xl">
       {renderView()}
     </div>
   )

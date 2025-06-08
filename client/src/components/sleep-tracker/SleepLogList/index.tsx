@@ -110,21 +110,21 @@ export const SleepLogList: React.FC<SleepLogListProps> = ({
   }
 
   return (
-    <div className="space-y-4">
-      <h2 className="text-xl font-semibold mb-4">수면 기록 목록</h2>
+    <div className="space-y-3 sm:space-y-4">
+      <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">수면 기록 목록</h2>
 
       {logs.length === 0 && !loading ? (
-        <div className="text-gray-500 p-4">기록된 수면 데이터가 없습니다.</div>
+        <div className="text-gray-500 p-3 sm:p-4 text-sm sm:text-base">기록된 수면 데이터가 없습니다.</div>
       ) : (
-        <ul className="divide-y divide-gray-200">
+        <ul className="divide-y divide-gray-200 rounded-lg overflow-hidden shadow-sm">
           {logs.map((log) => {
             // Define swipe action buttons
             const leftAction = onDeleteLog && (
               <button 
-                className="bg-red-500 text-white h-full px-4 flex items-center justify-center"
+                className="bg-red-500 text-white h-full px-3 sm:px-4 flex items-center justify-center"
                 aria-label="삭제"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                 </svg>
               </button>
@@ -132,10 +132,10 @@ export const SleepLogList: React.FC<SleepLogListProps> = ({
 
             const rightAction = onEditLog && (
               <button 
-                className="bg-blue-500 text-white h-full px-4 flex items-center justify-center"
+                className="bg-blue-500 text-white h-full px-3 sm:px-4 flex items-center justify-center"
                 aria-label="수정"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                 </svg>
               </button>
@@ -149,21 +149,21 @@ export const SleepLogList: React.FC<SleepLogListProps> = ({
                   leftAction={leftAction}
                   rightAction={rightAction}
                   onClick={() => onSelectLog(log)}
-                  className="bg-white py-4 px-3 hover:bg-gray-50 cursor-pointer transition-colors"
+                  className="bg-white py-3 sm:py-4 px-3 hover:bg-gray-50 cursor-pointer transition-colors"
                 >
-                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-2">
                     <div className="flex-1">
-                      <p className="font-medium text-base">{formatDate(log.sleepTime)}</p>
-                      <div className="flex flex-wrap items-center gap-x-4 mt-1">
-                        <p className="text-sm text-gray-600">
+                      <p className="font-medium text-sm sm:text-base">{formatDate(log.sleepTime)}</p>
+                      <div className="flex flex-wrap items-center gap-x-2 sm:gap-x-4 mt-1">
+                        <p className="text-xs sm:text-sm text-gray-600">
                           {formatTime(log.sleepTime)} - {formatTime(log.wakeTime)}
                         </p>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-xs sm:text-sm text-gray-600">
                           수면 시간: {formatDuration(log.sleepDuration)}
                         </p>
                       </div>
                     </div>
-                    <div className={`px-3 py-1.5 rounded-full text-sm font-medium ${getQualityColor(log.quality)} mt-2 sm:mt-0 self-start sm:self-auto`}>
+                    <div className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-medium ${getQualityColor(log.quality)} mt-1 sm:mt-0 self-start sm:self-auto`}>
                       {log.quality}/10
                     </div>
                   </div>
@@ -182,52 +182,61 @@ export const SleepLogList: React.FC<SleepLogListProps> = ({
 
       {/* Pagination */}
       {!loading && logs.length > 0 && (
-        <div className="flex justify-center mt-6">
-          <nav className="flex items-center space-x-2" aria-label="Pagination">
+        <div className="flex justify-center mt-4 sm:mt-6">
+          <nav className="flex flex-wrap items-center justify-center gap-1 sm:gap-2" aria-label="Pagination">
             {/* Previous page button */}
             <button
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
-              className={`px-3 py-2 rounded-md ${
+              className={`px-2 sm:px-3 py-1.5 sm:py-2 rounded-md ${
                 currentPage === 1
                   ? 'text-gray-400 cursor-not-allowed'
                   : 'text-gray-700 hover:bg-gray-100'
               }`}
               aria-label="이전 페이지"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 sm:h-5 sm:w-5" viewBox="0 0 20 20" fill="currentColor">
                 <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
               </svg>
             </button>
 
-            {/* Page numbers */}
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-              <button
-                key={page}
-                onClick={() => handlePageChange(page)}
-                className={`px-4 py-2 rounded-md ${
-                  currentPage === page
-                    ? 'bg-indigo-600 text-white'
-                    : 'text-gray-700 hover:bg-gray-100'
-                }`}
-                aria-current={currentPage === page ? 'page' : undefined}
-              >
-                {page}
-              </button>
-            ))}
+            {/* Page numbers - on mobile, show limited pages */}
+            {Array.from({ length: totalPages }, (_, i) => i + 1)
+              .filter(page => {
+                // On mobile with many pages, show only current page and adjacent pages
+                if (window.innerWidth < 640 && totalPages > 5) {
+                  return page === 1 || page === totalPages || 
+                         Math.abs(page - currentPage) <= 1;
+                }
+                return true;
+              })
+              .map((page) => (
+                <button
+                  key={page}
+                  onClick={() => handlePageChange(page)}
+                  className={`px-2.5 sm:px-4 py-1.5 sm:py-2 text-sm sm:text-base rounded-md ${
+                    currentPage === page
+                      ? 'bg-indigo-600 text-white'
+                      : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+                  aria-current={currentPage === page ? 'page' : undefined}
+                >
+                  {page}
+                </button>
+              ))}
 
             {/* Next page button */}
             <button
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
-              className={`px-3 py-2 rounded-md ${
+              className={`px-2 sm:px-3 py-1.5 sm:py-2 rounded-md ${
                 currentPage === totalPages
                   ? 'text-gray-400 cursor-not-allowed'
                   : 'text-gray-700 hover:bg-gray-100'
               }`}
               aria-label="다음 페이지"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 sm:h-5 sm:w-5" viewBox="0 0 20 20" fill="currentColor">
                 <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
               </svg>
             </button>
