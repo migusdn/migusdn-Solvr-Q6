@@ -16,6 +16,10 @@ interface Env {
   DATABASE_URL: string
   CORS_ORIGIN: string
   LOG_LEVEL: string
+  JWT_ACCESS_SECRET: string
+  JWT_REFRESH_SECRET: string
+  JWT_ACCESS_EXPIRATION: number
+  JWT_REFRESH_EXPIRATION: number
 }
 
 // 환경 변수 기본값 설정
@@ -25,7 +29,11 @@ const env: Env = {
   NODE_ENV: (process.env.NODE_ENV as Env['NODE_ENV']) || 'development',
   DATABASE_URL: process.env.DATABASE_URL || './data/database.sqlite',
   CORS_ORIGIN: process.env.CORS_ORIGIN || 'http://localhost:3000',
-  LOG_LEVEL: process.env.LOG_LEVEL || 'info'
+  LOG_LEVEL: process.env.LOG_LEVEL || 'info',
+  JWT_ACCESS_SECRET: process.env.JWT_ACCESS_SECRET || 'access_secret_key_change_in_production',
+  JWT_REFRESH_SECRET: process.env.JWT_REFRESH_SECRET || 'refresh_secret_key_change_in_production',
+  JWT_ACCESS_EXPIRATION: parseInt(process.env.JWT_ACCESS_EXPIRATION || '900', 10), // 15 minutes in seconds
+  JWT_REFRESH_EXPIRATION: parseInt(process.env.JWT_REFRESH_EXPIRATION || '604800', 10) // 7 days in seconds
 }
 
 export default env
