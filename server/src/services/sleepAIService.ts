@@ -36,7 +36,8 @@ export interface SleepAIAnalysis {
 
 // 폴백 분석 제공 함수
 const getFallbackAnalysis = (userId: string, sleepData: any): SleepAIAnalysis => {
-  return {
+  // 기본 폴백 데이터
+  const fallbackData: SleepAIAnalysis = {
     analysisId: `fallback-${Date.now()}`,
     userId: userId.toString(),
     generatedAt: new Date().toISOString(),
@@ -44,7 +45,7 @@ const getFallbackAnalysis = (userId: string, sleepData: any): SleepAIAnalysis =>
       summary: '수면 데이터 분석에 일시적인 문제가 발생했습니다.',
       averageDuration: sleepData.summary?.averageDuration || 0,
       qualityScore: (sleepData.summary?.averageQuality || 0) * 10,
-      consistency: 0,
+      consistency: sleepData.summary?.sleepEfficiency || 0,
     },
     insights: [
       {
@@ -61,124 +62,117 @@ const getFallbackAnalysis = (userId: string, sleepData: any): SleepAIAnalysis =>
         priority: 'medium',
         actionable: true,
       },
+      {
+        title: '수면 환경 개선하기',
+        description: '조용하고 어두운 환경에서 수면의 질이 향상됩니다.',
+        priority: 'high',
+        actionable: true,
+      },
+      {
+        title: '취침 전 스크린 사용 줄이기',
+        description: '취침 전 1시간은 스마트폰, TV 등의 스크린 사용을 피하는 것이 좋습니다.',
+        priority: 'low',
+        actionable: true,
+      },
     ],
   };
+
+  // 수면 데이터가 있는 경우 일부 정보 추가
+  if (sleepData && sleepData.summary) {
+    // 평균 수면 시간에 따른 인사이트 추가
+    const avgHours = sleepData.summary.averageDuration / 60;
+    if (avgHours < 6) {
+      fallbackData.insights.push({
+        type: 'warning',
+        title: '수면 부족',
+        description: '평균 수면 시간이 6시간 미만입니다. 성인의 권장 수면 시간은 7-9시간입니다.',
+        confidenceScore: 0.9,
+      });
+    } else if (avgHours > 9) {
+      fallbackData.insights.push({
+        type: 'warning',
+        title: '과도한 수면',
+        description: '평균 수면 시간이 9시간을 초과합니다. 지나친 수면도 건강에 좋지 않을 수 있습니다.',
+        confidenceScore: 0.8,
+      });
+    } else {
+      fallbackData.insights.push({
+        type: 'strength',
+        title: '적정 수면 시간',
+        description: '평균 수면 시간이 권장 범위(7-9시간) 내에 있습니다.',
+        confidenceScore: 0.9,
+      });
+    }
+  }
+
+  return fallbackData;
 };
 
 // AI 응답 파싱 함수
 const parseAIResponse = (text: string): Partial<SleepAIAnalysis> => {
   try {
-    // 간단한 파싱 로직 (실제로는 더 복잡할 수 있음)
-    const summaryMatch = text.match(/수면 패턴 요약:(.*?)(?=주요 인사이트:|$)/s);
-    const insightsMatch = text.match(/주요 인사이트:(.*?)(?=개인화된 권장사항:|$)/s);
-    const recommendationsMatch = text.match(/개인화된 권장사항:(.*?)(?=$)/s);
+    // JSON 파싱 시도
+    const jsonData = JSON.parse(text);
 
-    const summary = summaryMatch ? summaryMatch[1].trim() : '';
+    // 필요한 필드 검증 및 추출
+    const sleepPattern = {
+      summary: jsonData.sleepPattern?.summary || '수면 패턴 분석을 완료했습니다.',
+      averageDuration: 0, // 이 값들은 실제 데이터로 채워질 것입니다
+      qualityScore: 0,
+      consistency: 0,
+    };
 
-    // 인사이트 파싱
+    // 인사이트 검증 및 변환
     const insights: SleepAIAnalysis['insights'] = [];
-    if (insightsMatch) {
-      const insightsText = insightsMatch[1];
-
-      // 강점 파싱
-      const strengthsMatch = insightsText.match(/강점:(.*?)(?=개선점:|경고사항:|$)/s);
-      if (strengthsMatch) {
-        const strengthsLines = strengthsMatch[1].trim().split('\n');
-        for (const line of strengthsLines) {
-          const cleanLine = line.replace(/^[•\-\*]\s*/, '').trim();
-          if (cleanLine) {
-            const [title, ...descParts] = cleanLine.split(':');
-            insights.push({
-              type: 'strength',
-              title: title.trim(),
-              description: descParts.join(':').trim(),
-              confidenceScore: 0.9,
-            });
-          }
-        }
-      }
-
-      // 개선점 파싱
-      const improvementsMatch = insightsText.match(/개선점:(.*?)(?=강점:|경고사항:|$)/s);
-      if (improvementsMatch) {
-        const improvementsLines = improvementsMatch[1].trim().split('\n');
-        for (const line of improvementsLines) {
-          const cleanLine = line.replace(/^[•\-\*]\s*/, '').trim();
-          if (cleanLine) {
-            const [title, ...descParts] = cleanLine.split(':');
-            insights.push({
-              type: 'improvement',
-              title: title.trim(),
-              description: descParts.join(':').trim(),
-              confidenceScore: 0.8,
-            });
-          }
-        }
-      }
-
-      // 경고사항 파싱
-      const warningsMatch = insightsText.match(/경고사항:(.*?)(?=강점:|개선점:|$)/s);
-      if (warningsMatch) {
-        const warningsLines = warningsMatch[1].trim().split('\n');
-        for (const line of warningsLines) {
-          const cleanLine = line.replace(/^[•\-\*]\s*/, '').trim();
-          if (cleanLine) {
-            const [title, ...descParts] = cleanLine.split(':');
-            insights.push({
-              type: 'warning',
-              title: title.trim(),
-              description: descParts.join(':').trim(),
-              confidenceScore: 0.7,
-            });
-          }
+    if (Array.isArray(jsonData.insights)) {
+      for (const insight of jsonData.insights) {
+        if (insight && typeof insight === 'object' && 
+            ['strength', 'improvement', 'warning'].includes(insight.type) &&
+            typeof insight.title === 'string' && 
+            typeof insight.description === 'string') {
+          insights.push({
+            type: insight.type as 'strength' | 'improvement' | 'warning',
+            title: insight.title,
+            description: insight.description,
+            confidenceScore: typeof insight.confidenceScore === 'number' ? insight.confidenceScore : 0.8,
+          });
         }
       }
     }
 
-    // 권장사항 파싱
+    // 권장사항 검증 및 변환
     const recommendations: SleepAIAnalysis['recommendations'] = [];
-    if (recommendationsMatch) {
-      const recommendationsText = recommendationsMatch[1];
-      const recommendationsLines = recommendationsText.trim().split('\n');
-
-      for (const line of recommendationsLines) {
-        const cleanLine = line.replace(/^[•\-\*]\s*/, '').trim();
-        if (cleanLine) {
-          const priorityMatch = cleanLine.match(/\[(높음|중간|낮음)\]/);
-          const priority = priorityMatch 
-            ? priorityMatch[1] === '높음' 
-              ? 'high' 
-              : priorityMatch[1] === '중간' 
-                ? 'medium' 
-                : 'low'
-            : 'medium';
-
-          const titleDescMatch = cleanLine.replace(/\[(높음|중간|낮음)\]/, '').split(':');
-
-          if (titleDescMatch.length > 0) {
-            recommendations.push({
-              title: titleDescMatch[0].trim(),
-              description: titleDescMatch.length > 1 ? titleDescMatch[1].trim() : '',
-              priority,
-              actionable: true,
-            });
+    if (Array.isArray(jsonData.recommendations)) {
+      for (const recommendation of jsonData.recommendations) {
+        if (recommendation && typeof recommendation === 'object' &&
+            typeof recommendation.title === 'string' &&
+            typeof recommendation.description === 'string') {
+          // 우선순위 검증
+          let priority: 'high' | 'medium' | 'low' = 'medium';
+          if (recommendation.priority === 'high' || recommendation.priority === '높음') {
+            priority = 'high';
+          } else if (recommendation.priority === 'low' || recommendation.priority === '낮음') {
+            priority = 'low';
           }
+
+          recommendations.push({
+            title: recommendation.title,
+            description: recommendation.description,
+            priority,
+            actionable: recommendation.actionable === false ? false : true,
+          });
         }
       }
     }
 
     return {
-      sleepPattern: {
-        summary: summary || '수면 패턴 분석을 완료했습니다.',
-        averageDuration: 0, // 이 값들은 실제 데이터로 채워질 것입니다
-        qualityScore: 0,
-        consistency: 0,
-      },
+      sleepPattern,
       insights,
       recommendations,
     };
   } catch (error) {
-    console.error('AI 응답 파싱 오류:', error);
+    console.error('AI 응답 JSON 파싱 오류:', error);
+    console.error('원본 텍스트:', text);
     return {};
   }
 };
@@ -209,43 +203,86 @@ const generateSleepAnalysis = async (sleepData: any, userId: string) => {
     - 수면 효율성: ${sleepData.summary.sleepEfficiency}%
     - 총 기록 수: ${sleepData.summary.totalLogs}회
 
-    다음 형식으로 응답해주세요:
+    반드시 다음 JSON 형식으로만 응답해주세요. 다른 텍스트나 설명은 포함하지 마세요:
 
-    수면 패턴 요약: (1-2문장)
+    {
+      "sleepPattern": {
+        "summary": "수면 패턴에 대한 1-2문장 요약"
+      },
+      "insights": [
+        {
+          "type": "strength",
+          "title": "강점 제목",
+          "description": "강점에 대한 설명",
+          "confidenceScore": 0.9
+        },
+        {
+          "type": "improvement",
+          "title": "개선점 제목",
+          "description": "개선점에 대한 설명",
+          "confidenceScore": 0.8
+        },
+        {
+          "type": "warning",
+          "title": "경고 제목",
+          "description": "경고에 대한 설명",
+          "confidenceScore": 0.7
+        }
+      ],
+      "recommendations": [
+        {
+          "title": "권장사항 제목",
+          "description": "권장사항에 대한 설명",
+          "priority": "high",
+          "actionable": true
+        },
+        {
+          "title": "권장사항 제목",
+          "description": "권장사항에 대한 설명",
+          "priority": "medium",
+          "actionable": true
+        },
+        {
+          "title": "권장사항 제목",
+          "description": "권장사항에 대한 설명",
+          "priority": "low",
+          "actionable": true
+        }
+      ]
+    }
 
-    주요 인사이트:
-    강점:
-    - 강점1: 설명
-    - 강점2: 설명
-    - 강점3: 설명
-
-    개선점:
-    - 개선점1: 설명
-    - 개선점2: 설명
-    - 개선점3: 설명
-
-    경고사항:
-    - 경고1: 설명
-    - 경고2: 설명
-
-    개인화된 권장사항:
-    - [높음] 권장사항1: 설명
-    - [중간] 권장사항2: 설명
-    - [낮음] 권장사항3: 설명
-    - [높음] 권장사항4: 설명
-    - [중간] 권장사항5: 설명
-
-    응답은 한국어로 제공해주세요.
+    주의사항:
+    1. 응답은 반드시 유효한 JSON 형식이어야 합니다.
+    2. 모든 텍스트는 한국어로 작성해주세요.
+    3. 인사이트는 최소 3개 이상 제공해주세요 (강점, 개선점, 경고 각각 최소 1개).
+    4. 권장사항은 최소 3개 이상 제공해주세요 (우선순위 높음, 중간, 낮음 각각 최소 1개).
+    5. priority 값은 "high", "medium", "low" 중 하나여야 합니다.
+    6. type 값은 "strength", "improvement", "warning" 중 하나여야 합니다.
+    7. confidenceScore 값은 0과 1 사이의 숫자여야 합니다.
   `;
 
   try {
-    // AI 응답 생성
-    const result = await model.generateContent(prompt);
+    // AI 응답 생성 (JSON 형식 지정)
+    const generationConfig = {
+      temperature: 0.2, // 낮은 temperature로 더 일관된 응답 생성
+      topK: 40,
+      topP: 0.95,
+    };
+
+    const result = await model.generateContent({
+      contents: [{ role: 'user', parts: [{ text: prompt }] }],
+      generationConfig,
+    });
+
     const response = await result.response;
     const text = response.text();
 
+    // 응답에서 JSON 부분만 추출 (경우에 따라 AI가 JSON 외에 다른 텍스트를 포함할 수 있음)
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    const jsonText = jsonMatch ? jsonMatch[0] : text;
+
     // 응답 파싱 및 구조화
-    const parsedResponse = parseAIResponse(text);
+    const parsedResponse = parseAIResponse(jsonText);
 
     // 실제 수면 데이터로 일부 필드 채우기
     return {
