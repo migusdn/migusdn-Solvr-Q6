@@ -1,5 +1,15 @@
 import React from 'react'
 import { SleepTrendPoint } from '../../../types/sleep-stats'
+import { 
+  BarChart, 
+  Bar, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  ResponsiveContainer,
+  Legend
+} from 'recharts'
 
 interface SleepDurationChartProps {
   data: SleepTrendPoint[]
@@ -15,11 +25,6 @@ const SleepDurationChart: React.FC<SleepDurationChartProps> = ({ data }) => {
     )
   }
 
-  // 차트 라이브러리가 없으므로 간단한 시각화로 대체
-  // 실제 구현에서는 recharts 등의 라이브러리를 사용해야 함
-  const maxValue = Math.max(...data.map(item => item.value))
-  const minValue = Math.min(...data.map(item => item.value))
-  
   // 시간 포맷팅 함수
   const formatDuration = (minutes: number) => {
     const hours = Math.floor(minutes / 60)
@@ -27,45 +32,71 @@ const SleepDurationChart: React.FC<SleepDurationChartProps> = ({ data }) => {
     return `${hours}시간 ${mins}분`
   }
 
+  // 차트 데이터 포맷팅
+  const chartData = data.map(item => ({
+    date: new Date(item.date).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' }),
+    minutes: item.value,
+    hours: Math.floor(item.value / 60) + (item.value % 60) / 60,
+    originalDate: item.date
+  }))
+
+  // 평균 수면 시간 계산
+  const averageDuration = data.reduce((sum, item) => sum + item.value, 0) / data.length
+
+  // 툴팁 커스터마이징
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-white p-2 border border-gray-200 shadow-sm rounded">
+          <p className="font-medium">{label}</p>
+          <p className="text-blue-500">
+            {formatDuration(payload[0].value)}
+          </p>
+        </div>
+      )
+    }
+    return null
+  }
+
+  // Y축 틱 포맷팅
+  const formatYAxis = (minutes: number) => {
+    return `${Math.floor(minutes / 60)}시간`
+  }
+
   return (
     <div className="bg-white rounded-lg shadow p-4">
       <h3 className="text-lg font-medium mb-3">수면 시간 추이</h3>
-      
-      <div className="h-64 relative">
-        {/* 간단한 막대 그래프 구현 */}
-        <div className="flex h-full items-end space-x-1">
-          {data.map((item, index) => {
-            // 막대 높이 계산 (최대값 기준 상대적 높이)
-            const heightPercent = ((item.value - minValue) / (maxValue - minValue || 1)) * 80 + 10
-            
-            return (
-              <div key={index} className="flex-1 flex flex-col items-center">
-                <div 
-                  className="w-full bg-blue-500 rounded-t"
-                  style={{ height: `${heightPercent}%` }}
-                  title={`${item.date}: ${formatDuration(item.value)}`}
-                ></div>
-                {/* 날짜 레이블 (모든 날짜를 표시하면 복잡해지므로 일부만 표시) */}
-                {index % Math.max(1, Math.floor(data.length / 7)) === 0 && (
-                  <div className="text-xs text-gray-500 mt-1 truncate w-full text-center">
-                    {new Date(item.date).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })}
-                  </div>
-                )}
-              </div>
-            )
-          })}
-        </div>
-        
-        {/* Y축 레이블 */}
-        <div className="absolute left-0 top-0 h-full flex flex-col justify-between text-xs text-gray-500">
-          <span>{formatDuration(maxValue)}</span>
-          <span>{formatDuration(Math.floor((maxValue + minValue) / 2))}</span>
-          <span>{formatDuration(minValue)}</span>
-        </div>
+
+      <div className="h-64">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart
+            data={chartData}
+            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+          >
+            <CartesianGrid strokeDasharray="3 3" vertical={false} />
+            <XAxis 
+              dataKey="date" 
+              tick={{ fontSize: 12 }}
+              interval={Math.max(0, Math.floor(data.length / 7))}
+            />
+            <YAxis 
+              tickFormatter={formatYAxis}
+              tick={{ fontSize: 12 }}
+              domain={['auto', 'auto']}
+            />
+            <Tooltip content={<CustomTooltip />} />
+            <Bar 
+              dataKey="minutes" 
+              name="수면 시간" 
+              fill="#3B82F6" 
+              radius={[4, 4, 0, 0]}
+            />
+          </BarChart>
+        </ResponsiveContainer>
       </div>
-      
+
       <div className="mt-4 text-sm text-gray-500 text-center">
-        <p>평균 수면 시간: {formatDuration(data.reduce((sum, item) => sum + item.value, 0) / data.length)}</p>
+        <p>평균 수면 시간: {formatDuration(averageDuration)}</p>
       </div>
     </div>
   )

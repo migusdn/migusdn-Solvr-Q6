@@ -1,5 +1,15 @@
 import React from 'react'
 import { SleepTrendPoint } from '../../../types/sleep-stats'
+import { 
+  BarChart, 
+  Bar, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  ResponsiveContainer,
+  Cell,
+} from 'recharts'
 
 interface SleepQualityChartProps {
   data: SleepTrendPoint[]
@@ -15,78 +25,106 @@ const SleepQualityChart: React.FC<SleepQualityChartProps> = ({ data }) => {
     )
   }
 
-  // 차트 라이브러리가 없으므로 간단한 시각화로 대체
-  // 실제 구현에서는 recharts 등의 라이브러리를 사용해야 함
-  const maxValue = Math.max(...data.map(item => item.value))
-  const minValue = Math.min(...data.map(item => item.value))
-  
   // 품질 점수에 따른 색상 결정
   const getQualityColor = (quality: number) => {
-    if (quality >= 8) return 'bg-green-500'
-    if (quality >= 6) return 'bg-blue-500'
-    if (quality >= 4) return 'bg-yellow-500'
-    return 'bg-red-500'
+    if (quality >= 8) return '#22c55e' // green-500
+    if (quality >= 6) return '#3b82f6' // blue-500
+    if (quality >= 4) return '#eab308' // yellow-500
+    return '#ef4444' // red-500
   }
+
+  // 품질 등급 결정
+  const getQualityLabel = (quality: number) => {
+    if (quality >= 8) return '좋음'
+    if (quality >= 6) return '보통'
+    if (quality >= 4) return '나쁨'
+    return '매우 나쁨'
+  }
+
+  // 차트 데이터 포맷팅
+  const chartData = data.map(item => ({
+    date: new Date(item.date).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' }),
+    quality: item.value,
+    color: getQualityColor(item.value),
+    label: getQualityLabel(item.value),
+    originalDate: item.date
+  }))
+
+  // 평균 수면 품질 계산
+  const averageQuality = data.reduce((sum, item) => sum + item.value, 0) / data.length
+
+  // 툴팁 커스터마이징
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      const data = payload[0].payload
+      return (
+        <div className="bg-white p-2 border border-gray-200 shadow-sm rounded">
+          <p className="font-medium">{label}</p>
+          <p style={{ color: data.color }}>
+            품질: {data.quality}/10 ({data.label})
+          </p>
+        </div>
+      )
+    }
+    return null
+  }
+
+  // 범례 아이템
+  const qualityLevels = [
+    { value: '좋음 (8-10)', color: '#22c55e' },
+    { value: '보통 (6-7)', color: '#3b82f6' },
+    { value: '나쁨 (4-5)', color: '#eab308' },
+    { value: '매우 나쁨 (1-3)', color: '#ef4444' }
+  ]
 
   return (
     <div className="bg-white rounded-lg shadow p-4">
       <h3 className="text-lg font-medium mb-3">수면 품질 추이</h3>
-      
-      <div className="h-64 relative">
-        {/* 간단한 막대 그래프 구현 */}
-        <div className="flex h-full items-end space-x-1">
-          {data.map((item, index) => {
-            // 막대 높이 계산 (최대값 기준 상대적 높이, 최소 10%)
-            const heightPercent = ((item.value - minValue) / (maxValue - minValue || 1)) * 80 + 10
-            
-            return (
-              <div key={index} className="flex-1 flex flex-col items-center">
-                <div 
-                  className={`w-full ${getQualityColor(item.value)} rounded-t`}
-                  style={{ height: `${heightPercent}%` }}
-                  title={`${item.date}: ${item.value}/10`}
-                ></div>
-                {/* 날짜 레이블 (모든 날짜를 표시하면 복잡해지므로 일부만 표시) */}
-                {index % Math.max(1, Math.floor(data.length / 7)) === 0 && (
-                  <div className="text-xs text-gray-500 mt-1 truncate w-full text-center">
-                    {new Date(item.date).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })}
-                  </div>
-                )}
-              </div>
-            )
-          })}
-        </div>
-        
-        {/* Y축 레이블 */}
-        <div className="absolute left-0 top-0 h-full flex flex-col justify-between text-xs text-gray-500">
-          <span>{maxValue}/10</span>
-          <span>{Math.floor((maxValue + minValue) / 2)}/10</span>
-          <span>{minValue}/10</span>
-        </div>
+
+      <div className="h-64">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart
+            data={chartData}
+            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+          >
+            <CartesianGrid strokeDasharray="3 3" vertical={false} />
+            <XAxis 
+              dataKey="date" 
+              tick={{ fontSize: 12 }}
+              interval={Math.max(0, Math.floor(data.length / 7))}
+            />
+            <YAxis 
+              domain={[0, 10]}
+              ticks={[0, 2, 4, 6, 8, 10]}
+              tickFormatter={(value) => `${value}`}
+              tick={{ fontSize: 12 }}
+            />
+            <Tooltip content={<CustomTooltip />} />
+            <Bar 
+              dataKey="quality" 
+              name="수면 품질" 
+              radius={[4, 4, 0, 0]}
+            >
+              {chartData.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={entry.color} />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
       </div>
-      
+
       <div className="mt-4 text-sm text-gray-500 text-center">
-        <p>평균 수면 품질: {(data.reduce((sum, item) => sum + item.value, 0) / data.length).toFixed(1)}/10</p>
+        <p>평균 수면 품질: {averageQuality.toFixed(1)}/10</p>
       </div>
-      
+
       {/* 범례 */}
       <div className="mt-2 flex justify-center gap-4 text-xs">
-        <div className="flex items-center">
-          <div className="w-3 h-3 bg-green-500 mr-1"></div>
-          <span>좋음 (8-10)</span>
-        </div>
-        <div className="flex items-center">
-          <div className="w-3 h-3 bg-blue-500 mr-1"></div>
-          <span>보통 (6-7)</span>
-        </div>
-        <div className="flex items-center">
-          <div className="w-3 h-3 bg-yellow-500 mr-1"></div>
-          <span>나쁨 (4-5)</span>
-        </div>
-        <div className="flex items-center">
-          <div className="w-3 h-3 bg-red-500 mr-1"></div>
-          <span>매우 나쁨 (1-3)</span>
-        </div>
+        {qualityLevels.map((level, index) => (
+          <div key={index} className="flex items-center">
+            <div className="w-3 h-3 mr-1" style={{ backgroundColor: level.color }}></div>
+            <span>{level.value}</span>
+          </div>
+        ))}
       </div>
     </div>
   )

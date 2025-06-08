@@ -207,15 +207,36 @@ export const createSleepStatsService = ({ db }: SleepStatsServiceDeps) => {
     const idealSleepDuration = 480
     const sleepEfficiency = Math.min(100, (averageDuration / idealSleepDuration) * 100)
 
-    // 추세 데이터 생성
+    // 추세 데이터 생성 (날짜별로 집계)
+    // 날짜별 수면 시간 데이터 집계
+    const durationByDate = new Map<string, number[]>()
+    sleepLogData.forEach(log => {
+      const date = log.sleepTime.split('T')[0] // YYYY-MM-DD 형식으로 변환
+      if (!durationByDate.has(date)) {
+        durationByDate.set(date, [])
+      }
+      durationByDate.get(date)?.push(log.sleepDuration)
+    })
+
+    // 날짜별 수면 품질 데이터 집계
+    const qualityByDate = new Map<string, number[]>()
+    qualityLogs.forEach(log => {
+      const date = log.sleepTime.split('T')[0] // YYYY-MM-DD 형식으로 변환
+      if (!qualityByDate.has(date)) {
+        qualityByDate.set(date, [])
+      }
+      qualityByDate.get(date)?.push(log.quality || 0)
+    })
+
+    // 집계된 데이터로 추세 데이터 생성
     const trends: SleepTrends = {
-      duration: sleepLogData.map(log => ({
-        date: log.sleepTime.split('T')[0], // YYYY-MM-DD 형식으로 변환
-        value: log.sleepDuration
+      duration: Array.from(durationByDate.entries()).map(([date, values]) => ({
+        date,
+        value: values.reduce((sum, val) => sum + val, 0) / values.length // 평균 수면 시간
       })),
-      quality: qualityLogs.map(log => ({
-        date: log.sleepTime.split('T')[0], // YYYY-MM-DD 형식으로 변환
-        value: log.quality || 0
+      quality: Array.from(qualityByDate.entries()).map(([date, values]) => ({
+        date,
+        value: values.reduce((sum, val) => sum + val, 0) / values.length // 평균 수면 품질
       }))
     }
 
