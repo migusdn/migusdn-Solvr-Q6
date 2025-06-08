@@ -6,6 +6,7 @@ import UserDetailPage from './routes/UserDetailPage'
 import CreateUserPage from './routes/CreateUserPage'
 import EditUserPage from './routes/EditUserPage'
 import NotFoundPage from './routes/NotFoundPage'
+import SleepTrackerPage from './routes/SleepTrackerPage'
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
           <Route path=":id" element={<UserDetailPage />} />
           <Route path=":id/edit" element={<EditUserPage />} />
         </Route>
+        <Route path="sleep-tracker" element={<SleepTrackerPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>

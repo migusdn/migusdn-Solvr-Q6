@@ -1,5 +1,6 @@
 import axios from 'axios'
 import { User, CreateUserDto, UpdateUserDto } from '../types/user'
+import { SleepLog, CreateSleepLogDto, UpdateSleepLogDto, SleepLogFilters } from '../types/sleep-log'
 
 // API 응답 타입
 interface ApiResponse<T = any> {
@@ -57,6 +58,41 @@ export const healthService = {
   check: async (): Promise<{ status: string }> => {
     const response = await api.get<ApiResponse<{ status: string }>>('/health')
     return response.data.data || { status: 'unknown' }
+  }
+}
+
+export const sleepLogService = {
+  getAll: async (filters?: SleepLogFilters): Promise<SleepLog[]> => {
+    const response = await api.get<ApiResponse<SleepLog[]>>('/sleep-logs', { params: filters })
+    return response.data.data || []
+  },
+
+  getById: async (id: string): Promise<SleepLog> => {
+    const response = await api.get<ApiResponse<SleepLog>>(`/sleep-logs/${id}`)
+    if (!response.data.data) {
+      throw new Error('수면 기록을 찾을 수 없습니다.')
+    }
+    return response.data.data
+  },
+
+  create: async (sleepLogData: CreateSleepLogDto): Promise<SleepLog> => {
+    const response = await api.post<ApiResponse<SleepLog>>('/sleep-logs', sleepLogData)
+    if (!response.data.data) {
+      throw new Error('수면 기록 생성에 실패했습니다.')
+    }
+    return response.data.data
+  },
+
+  update: async (id: string, sleepLogData: UpdateSleepLogDto): Promise<SleepLog> => {
+    const response = await api.put<ApiResponse<SleepLog>>(`/sleep-logs/${id}`, sleepLogData)
+    if (!response.data.data) {
+      throw new Error('수면 기록 수정에 실패했습니다.')
+    }
+    return response.data.data
+  },
+
+  delete: async (id: string): Promise<void> => {
+    await api.delete(`/sleep-logs/${id}`)
   }
 }
 
