@@ -22,8 +22,11 @@ export const createSleepLogService = ({ db }: SleepLogServiceDeps) => {
   const getSleepLogs = async (
     filter?: SleepLogFilterDto
   ): Promise<{ data: SleepLog[]; total: number }> => {
-    const { startDate, endDate, limit = 10, offset = 0 } = filter || {}
-    console.log('getSleepLogs called with filter:', filter)
+    const { startDate, endDate, limit: rawLimit = 10, offset: rawOffset = 0 } = filter || {}
+    // 숫자로 확실히 변환
+    const limit = Number(rawLimit);
+    const offset = Number(rawOffset);
+    console.log('getSleepLogs called with filter:', filter, 'limit:', limit, 'offset:', offset)
     // 날짜 필터 조건 생성
     const whereConditions: SQL<unknown>[] = []
     if (startDate && endDate) {
@@ -83,7 +86,10 @@ export const createSleepLogService = ({ db }: SleepLogServiceDeps) => {
     data: SleepLog[]
     total: number
   }> => {
-    const { startDate, endDate, limit = 10, offset = 0 } = filter || {}
+    const { startDate, endDate, limit: rawLimit = 10, offset: rawOffset = 0 } = filter || {}
+    // 숫자로 확실히 변환
+    const limit = Number(rawLimit);
+    const offset = Number(rawOffset);
 
     // 조건 생성
     const whereConditions: SQL<unknown>[] = [
