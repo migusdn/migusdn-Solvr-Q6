@@ -11,7 +11,7 @@ const LoginPage = () => {
   const { login, loading, error } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
-  
+
   // 폼 상태
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -19,12 +19,20 @@ const LoginPage = () => {
     email?: string;
     password?: string;
   }>({});
-  
+
+  // 더미 데이터 자동 채우기
+  const fillDummyData = () => {
+    setEmail('admin@example.com');
+    setPassword('test1234');
+    // 유효성 검사 오류 초기화
+    setValidationErrors({});
+  };
+
   // 이메일 유효성 검사
   const validateEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const isValid = emailRegex.test(email);
-    
+
     if (!isValid) {
       setValidationErrors(prev => ({
         ...prev,
@@ -33,14 +41,14 @@ const LoginPage = () => {
     } else {
       setValidationErrors(prev => ({ ...prev, email: undefined }));
     }
-    
+
     return isValid;
   };
-  
+
   // 비밀번호 유효성 검사
   const validatePassword = (password: string): boolean => {
     const isValid = password.length >= 6;
-    
+
     if (!isValid) {
       setValidationErrors(prev => ({
         ...prev,
@@ -49,30 +57,30 @@ const LoginPage = () => {
     } else {
       setValidationErrors(prev => ({ ...prev, password: undefined }));
     }
-    
+
     return isValid;
   };
-  
+
   // 폼 제출 처리
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    
+
     // 유효성 검사
     const isEmailValid = validateEmail(email);
     const isPasswordValid = validatePassword(password);
-    
+
     if (!isEmailValid || !isPasswordValid) {
       return;
     }
-    
+
     // 로그인 시도
     await login(email, password);
-    
+
     // 로그인 성공 시 이전 페이지로 리디렉션 (있는 경우)
     const from = location.state?.from?.pathname || '/';
     navigate(from);
   };
-  
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="w-full max-w-md space-y-8">
@@ -81,7 +89,7 @@ const LoginPage = () => {
             로그인
           </h2>
         </div>
-        
+
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="-space-y-px rounded-md shadow-sm">
             <div>
@@ -105,7 +113,7 @@ const LoginPage = () => {
                 <p className="mt-1 text-sm text-red-600">{validationErrors.email}</p>
               )}
             </div>
-            
+
             <div className="mt-2">
               <label htmlFor="password" className="sr-only">
                 비밀번호
@@ -128,7 +136,17 @@ const LoginPage = () => {
               )}
             </div>
           </div>
-          
+
+          <div className="mt-4 mb-2">
+            <button
+              type="button"
+              onClick={fillDummyData}
+              className="group relative flex w-full justify-center rounded-md bg-gray-200 py-2 px-3 text-sm font-semibold text-gray-700 hover:bg-gray-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-400"
+            >
+              테스트 계정으로 자동 입력
+            </button>
+          </div>
+
           {error && (
             <div className="rounded-md bg-red-50 p-4">
               <div className="flex">
@@ -141,7 +159,7 @@ const LoginPage = () => {
               </div>
             </div>
           )}
-          
+
           <div>
             <button
               type="submit"
@@ -151,7 +169,7 @@ const LoginPage = () => {
               {loading ? '로그인 중...' : '로그인'}
             </button>
           </div>
-          
+
           <div className="flex items-center justify-center">
             <div className="text-sm">
               계정이 없으신가요?{' '}
