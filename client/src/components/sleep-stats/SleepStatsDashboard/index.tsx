@@ -7,6 +7,7 @@ import SleepDurationChart from '../SleepDurationChart'
 import SleepQualityChart from '../SleepQualityChart'
 import SleepPatternChart from '../SleepPatternChart'
 import SleepInsightCard from '../SleepInsightCard'
+import SleepAIAnalysisCard from '../SleepAIAnalysisCard'
 
 const SleepStatsDashboard: React.FC = () => {
   const { user } = useAuth()
@@ -24,7 +25,7 @@ const SleepStatsDashboard: React.FC = () => {
     const today = new Date()
     const thirtyDaysAgo = new Date()
     thirtyDaysAgo.setDate(today.getDate() - 30)
-    
+
     setEndDate(today.toISOString().split('T')[0])
     setStartDate(thirtyDaysAgo.toISOString().split('T')[0])
   }, [])
@@ -82,7 +83,7 @@ const SleepStatsDashboard: React.FC = () => {
     const today = new Date()
     const thirtyDaysAgo = new Date()
     thirtyDaysAgo.setDate(today.getDate() - 30)
-    
+
     setEndDate(today.toISOString().split('T')[0])
     setStartDate(thirtyDaysAgo.toISOString().split('T')[0])
   }
@@ -157,6 +158,13 @@ const SleepStatsDashboard: React.FC = () => {
               <p className="text-xl font-bold">{summaryData.summary.sleepEfficiency}%</p>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* AI 수면 분석 카드 */}
+      {summaryData && summaryData.summary.totalLogs > 0 && (
+        <div className="mt-6">
+          <SleepAIAnalysisCard />
         </div>
       )}
 
