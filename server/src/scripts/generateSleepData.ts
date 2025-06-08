@@ -151,6 +151,7 @@ async function main() {
       newUsers.push({
         name: `Test User ${i + 1}`,
         email: `test${i + 1}@example.com`,
+        password: '$2b$10$6Bnl2PeqQsXPVHp.QY.zHuQwZ/Bj0dGpJvZYWxTKmY5ABFxazPgOC', // password: admin123
         role: 'USER' as const
       });
     }

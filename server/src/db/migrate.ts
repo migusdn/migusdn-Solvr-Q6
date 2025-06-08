@@ -24,6 +24,7 @@ const initialUsers = [
   {
     name: '관리자',
     email: 'admin@example.com',
+    password: '$2b$10$6Bnl2PeqQsXPVHp.QY.zHuQwZ/Bj0dGpJvZYWxTKmY5ABFxazPgOC', // password: admin123
     role: UserRole.ADMIN,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
@@ -31,6 +32,7 @@ const initialUsers = [
   {
     name: '일반 사용자',
     email: 'user@example.com',
+    password: '$2b$10$6Bnl2PeqQsXPVHp.QY.zHuQwZ/Bj0dGpJvZYWxTKmY5ABFxazPgOC', // password: admin123
     role: UserRole.USER,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
@@ -38,6 +40,7 @@ const initialUsers = [
   {
     name: '게스트',
     email: 'guest@example.com',
+    password: '$2b$10$6Bnl2PeqQsXPVHp.QY.zHuQwZ/Bj0dGpJvZYWxTKmY5ABFxazPgOC', // password: admin123
     role: UserRole.GUEST,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
@@ -63,6 +66,7 @@ async function runMigration() {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
         email TEXT NOT NULL UNIQUE,
+        password TEXT NOT NULL,
         role TEXT NOT NULL DEFAULT 'USER',
         created_at TEXT NOT NULL,
         updated_at TEXT NOT NULL
