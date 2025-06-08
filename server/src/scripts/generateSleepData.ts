@@ -14,7 +14,7 @@ const defaultOptions: GenerationOptions = {
 };
 
 // 사용자별 수면 데이터 생성 함수
-function generateSleepDataForUser(userId: number, days: number, options: GenerationOptions): NewSleepLog[] {
+export function generateSleepDataForUser(userId: number, days: number, options: GenerationOptions): NewSleepLog[] {
   const sleepLogs: NewSleepLog[] = [];
   const now = new Date();
 

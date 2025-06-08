@@ -5,6 +5,7 @@ import { dirname } from 'path'
 import env from '../config/env'
 import { users, sleepLogs } from './schema'
 import { UserRole } from '../types'
+import { generateSleepDataForUser } from '../scripts/generateSleepData'
 
 // 데이터베이스 디렉토리 생성 함수
 async function ensureDatabaseDirectory() {
@@ -92,16 +93,46 @@ async function runMigration() {
     console.log('초기 데이터 삽입 중...')
 
     // 기존 데이터 확인
-    const existingUsers = db.select().from(users)
+    const existingUsers = await db.select().from(users)
+    const existingSleepLogs = await db.select().from(sleepLogs)
 
-    if ((await existingUsers).length === 0) {
+    if (existingUsers.length === 0) {
       // 초기 사용자 데이터 삽입
-      for (const user of initialUsers) {
-        await db.insert(users).values(user)
+      for (let i = 0; i < initialUsers.length; i++) {
+        const user = initialUsers[i]
+        const result = await db.insert(users).values(user)
+        const userId = Number(result.lastInsertRowid)
+
+        // 사용자별 수면 더미 데이터 생성 및 삽입 (30일치)
+        const userSleepLogs = generateSleepDataForUser(userId, 30, { missingDataProbability: 0.1 })
+
+        // 배치 크기 설정 (한 번에 너무 많은 데이터를 삽입하지 않도록)
+        const batchSize = 10
+        for (let j = 0; j < userSleepLogs.length; j += batchSize) {
+          const batch = userSleepLogs.slice(j, j + batchSize)
+          await db.insert(sleepLogs).values(batch)
+        }
+
+        console.log(`사용자 ID ${userId}에 대한 ${userSleepLogs.length}개의 수면 기록이 추가되었습니다.`)
       }
       console.log(`${initialUsers.length}명의 사용자가 추가되었습니다.`)
+    } else if (existingSleepLogs.length === 0) {
+      // 사용자는 있지만 수면 기록이 없는 경우, 수면 기록만 추가
+      for (const user of existingUsers) {
+        // 사용자별 수면 더미 데이터 생성 및 삽입 (30일치)
+        const userSleepLogs = generateSleepDataForUser(user.id, 30, { missingDataProbability: 0.1 })
+
+        // 배치 크기 설정 (한 번에 너무 많은 데이터를 삽입하지 않도록)
+        const batchSize = 10
+        for (let j = 0; j < userSleepLogs.length; j += batchSize) {
+          const batch = userSleepLogs.slice(j, j + batchSize)
+          await db.insert(sleepLogs).values(batch)
+        }
+
+        console.log(`사용자 ID ${user.id}에 대한 ${userSleepLogs.length}개의 수면 기록이 추가되었습니다.`)
+      }
     } else {
-      console.log('사용자 데이터가 이미 존재합니다. 초기 데이터 삽입을 건너뜁니다.')
+      console.log('사용자 데이터와 수면 기록이 이미 존재합니다. 초기 데이터 삽입을 건너뜁니다.')
     }
 
     console.log('데이터베이스 마이그레이션이 완료되었습니다.')
