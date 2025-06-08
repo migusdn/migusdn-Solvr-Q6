@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { SleepLog, SleepLogFilters } from '../../../types/sleep-log';
 import { sleepLogService } from '../../../services/api';
 import SwipeableListItem from '../SwipeableListItem';
+import { useAuth } from '../../../hooks/useAuth';
 
 interface SleepLogListProps {
   onSelectLog: (log: SleepLog) => void;
@@ -16,6 +17,7 @@ export const SleepLogList: React.FC<SleepLogListProps> = ({
   onEditLog,
   onDeleteLog 
 }) => {
+  const { user } = useAuth();
   const [logs, setLogs] = useState<SleepLog[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -47,6 +49,11 @@ export const SleepLogList: React.FC<SleepLogListProps> = ({
 
   const fetchLogs = async (pageNum: number) => {
     try {
+      if (!user) {
+        console.error('User not authenticated');
+        return;
+      }
+
       setLoading(true);
       const pageFilters = {
         ...filters,
@@ -54,7 +61,7 @@ export const SleepLogList: React.FC<SleepLogListProps> = ({
         offset: pageNum * PAGE_SIZE,
       };
 
-      const data = await sleepLogService.getAll(pageFilters);
+      const data = await sleepLogService.getByUserId(user.id, pageFilters);
 
       if (pageNum === 0) {
         setLogs(data);
@@ -75,7 +82,7 @@ export const SleepLogList: React.FC<SleepLogListProps> = ({
   useEffect(() => {
     setPage(0);
     fetchLogs(0);
-  }, [filters]);
+  }, [filters, user]);
 
   const loadMore = () => {
     if (!loading && hasMore) {

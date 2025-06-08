@@ -99,6 +99,7 @@ const LoginPage = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 onBlur={() => validateEmail(email)}
+                defaultValue="admin@example.com"
               />
               {validationErrors.email && (
                 <p className="mt-1 text-sm text-red-600">{validationErrors.email}</p>
@@ -120,6 +121,7 @@ const LoginPage = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 onBlur={() => validatePassword(password)}
+                defaultValue="test1234"
               />
               {validationErrors.password && (
                 <p className="mt-1 text-sm text-red-600">{validationErrors.password}</p>

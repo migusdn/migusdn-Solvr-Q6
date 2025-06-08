@@ -29,4 +29,5 @@ export interface SleepLogFilters {
   endDate?: string;
   limit?: number;
   offset?: number;
+  userId?: number;
 }

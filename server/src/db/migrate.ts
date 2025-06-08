@@ -147,4 +147,12 @@ if (require.main === module) {
   runMigration()
 }
 
-export default runMigration
+// 마이그레이션 함수 내보내기 (process.exit() 호출 없이)
+export default async function() {
+  try {
+    await runMigration()
+  } catch (error) {
+    console.error('데이터베이스 마이그레이션 중 오류가 발생했습니다:', error)
+    // 서버 시작 시에는 프로세스를 종료하지 않음
+  }
+}

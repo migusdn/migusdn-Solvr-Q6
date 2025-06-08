@@ -4,6 +4,7 @@ import { sleepLogService } from '../../../services/api';
 import SleepLogList from '../SleepLogList';
 import SleepLogDetail from '../SleepLogDetail';
 import SleepLogForm from '../SleepLogForm';
+import { useAuth } from '../../../hooks/useAuth';
 
 enum ViewMode {
   LIST,
@@ -13,11 +14,26 @@ enum ViewMode {
 }
 
 export const SleepTracker: React.FC = () => {
+  const { user } = useAuth();
   const [viewMode, setViewMode] = useState<ViewMode>(ViewMode.LIST);
   const [selectedLog, setSelectedLog] = useState<SleepLog | null>(null);
   const [filters, setFilters] = useState<SleepLogFilters>({});
-  const [startDate, setStartDate] = useState<string>('');
-  const [endDate, setEndDate] = useState<string>('');
+
+  // Calculate default date range (one month)
+  const getDefaultEndDate = () => {
+    const today = new Date();
+    return today.toISOString().split('T')[0];
+  };
+
+  const getDefaultStartDate = () => {
+    const today = new Date();
+    const oneMonthAgo = new Date(today);
+    oneMonthAgo.setMonth(today.getMonth() - 1);
+    return oneMonthAgo.toISOString().split('T')[0];
+  };
+
+  const [startDate, setStartDate] = useState<string>(getDefaultStartDate());
+  const [endDate, setEndDate] = useState<string>(getDefaultEndDate());
   const [stats, setStats] = useState<{
     averageQuality: number;
     averageDuration: number;
@@ -31,9 +47,13 @@ export const SleepTracker: React.FC = () => {
   // Calculate stats from logs
   const calculateStats = async () => {
     try {
-      // In a real app, this might be a separate API endpoint
-      // For now, we'll fetch all logs and calculate stats client-side
-      const logs = await sleepLogService.getAll(filters);
+      if (!user) {
+        console.error('User not authenticated');
+        return;
+      }
+
+      // Get logs for the current user
+      const logs = await sleepLogService.getByUserId(user.id, filters);
 
       if (logs.length === 0) {
         setStats({
@@ -73,8 +93,18 @@ export const SleepTracker: React.FC = () => {
       newFilters.endDate = endDate;
     }
 
+    // Add user ID to filters if user is authenticated
+    if (user) {
+      newFilters.userId = user.id;
+    }
+
     setFilters(newFilters);
   };
+
+  // Initialize filters with default date range and user ID on component mount
+  useEffect(() => {
+    handleDateRangeChange();
+  }, [user]);
 
   const handleSelectLog = (log: SleepLog) => {
     setSelectedLog(log);

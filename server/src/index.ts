@@ -45,8 +45,13 @@ async function start() {
     fastify.setErrorHandler(errorHandler)
 
     // 데이터베이스 마이그레이션 및 초기화
-    await runMigration()
-    await initializeDatabase()
+    try {
+      await runMigration()
+      await initializeDatabase()
+    } catch (error) {
+      fastify.log.error('데이터베이스 초기화 중 오류가 발생했습니다:', error)
+      // 계속 진행 - 마이그레이션 실패해도 서버는 시작
+    }
 
     // 서비스 및 컨텍스트 초기화
     const db = await getDb()

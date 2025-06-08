@@ -184,11 +184,16 @@ async function main() {
   }
 
   console.log('Finished generating sleep data.');
-  process.exit(0);
+  // Only exit if running as a script
+  if (require.main === module) {
+    process.exit(0);
+  }
 }
 
-// 스크립트 실행
-main().catch(err => {
-  console.error('Error generating sleep data:', err);
-  process.exit(1);
-});
+// 스크립트 실행은 직접 호출할 때만 실행
+if (require.main === module) {
+  main().catch(err => {
+    console.error('Error generating sleep data:', err);
+    process.exit(1);
+  });
+}

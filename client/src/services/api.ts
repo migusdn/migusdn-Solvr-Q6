@@ -116,6 +116,11 @@ export const sleepLogService = {
     return response.data.data || []
   },
 
+  getByUserId: async (userId: number, filters?: SleepLogFilters): Promise<SleepLog[]> => {
+    const response = await api.get<ApiResponse<SleepLog[]>>(`/sleep-logs/user/${userId}`, { params: filters })
+    return response.data.data || []
+  },
+
   getById: async (id: string): Promise<SleepLog> => {
     const response = await api.get<ApiResponse<SleepLog>>(`/sleep-logs/${id}`)
     if (!response.data.data) {
