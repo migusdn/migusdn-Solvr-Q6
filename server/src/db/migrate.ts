@@ -39,6 +39,22 @@ const initialUsers = [
     updatedAt: new Date().toISOString()
   },
   {
+    name: '일반 사용자',
+    email: 'user1@example.com',
+    password: '$2b$10$P70YqKlDWE2nVdfOryNZbOxD42m.9DIFWYze.CfLtG/UXIG8jRPSG', // password: test123
+    role: UserRole.USER,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  },
+  {
+    name: '일반 사용자',
+    email: 'user2@example.com',
+    password: '$2b$10$P70YqKlDWE2nVdfOryNZbOxD42m.9DIFWYze.CfLtG/UXIG8jRPSG', // password: test123
+    role: UserRole.USER,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  },
+  {
     name: '게스트',
     email: 'guest@example.com',
     password: '$2b$10$P70YqKlDWE2nVdfOryNZbOxD42m.9DIFWYze.CfLtG/UXIG8jRPSG', // password: test123
@@ -104,7 +120,7 @@ async function runMigration() {
         const userId = Number(result.lastInsertRowid)
 
         // 사용자별 수면 더미 데이터 생성 및 삽입 (30일치)
-        const userSleepLogs = generateSleepDataForUser(userId, 30, { missingDataProbability: 0.1 })
+        const userSleepLogs = generateSleepDataForUser(userId, 90, { missingDataProbability: 0.1 })
 
         // 배치 크기 설정 (한 번에 너무 많은 데이터를 삽입하지 않도록)
         const batchSize = 10

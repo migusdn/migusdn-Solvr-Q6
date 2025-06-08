@@ -4,7 +4,10 @@ import { AuthContext } from '../contexts/AuthContext'
 
 const MainLayout = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { isAuthenticated, logout } = useContext(AuthContext);
+  const { isAuthenticated, logout, user } = useContext(AuthContext);
+
+  // 관리자 권한 확인
+  const isAdmin = user?.role === 'admin';
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -12,12 +15,15 @@ const MainLayout = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <header className="bg-white shadow-sm">
+      <header className="bg-indigo-700 shadow-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex justify-between items-center">
             <div className="flex items-center">
-              <Link to="/" className="text-xl font-bold text-primary-600">
-                풀스택 보일러플레이트
+              <Link to="/" className="text-xl font-bold text-white flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                </svg>
+                <span>수면 트래킹 서비스</span>
               </Link>
             </div>
 
@@ -25,7 +31,7 @@ const MainLayout = () => {
             <div className="md:hidden">
               <button 
                 onClick={toggleMenu}
-                className="inline-flex items-center justify-center p-2 rounded-md text-neutral-600 hover:text-primary-600 hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500"
+                className="inline-flex items-center justify-center p-2 rounded-md text-white hover:text-indigo-200 hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-300"
                 aria-expanded="false"
                 aria-label="메인 메뉴 열기"
               >
@@ -69,33 +75,35 @@ const MainLayout = () => {
             <nav className="hidden md:flex space-x-4">
               <Link
                 to="/"
-                className="text-neutral-600 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium"
+                className="text-white hover:text-indigo-200 px-3 py-2 rounded-md text-sm font-medium"
               >
                 홈
               </Link>
-              <Link
-                to="/users"
-                className="text-neutral-600 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium"
-              >
-                유저 관리
-              </Link>
+              {isAdmin && isAuthenticated && (
+                <Link
+                  to="/users"
+                  className="text-white hover:text-indigo-200 px-3 py-2 rounded-md text-sm font-medium"
+                >
+                  유저 관리
+                </Link>
+              )}
               <Link
                 to="/sleep-tracker"
-                className="text-neutral-600 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium"
+                className="text-white hover:text-indigo-200 px-3 py-2 rounded-md text-sm font-medium"
               >
                 수면 트래커
               </Link>
               {isAuthenticated ? (
                 <button
                   onClick={logout}
-                  className="text-neutral-600 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium"
+                  className="text-white hover:text-indigo-200 px-3 py-2 rounded-md text-sm font-medium"
                 >
                   로그아웃
                 </button>
               ) : (
                 <Link
                   to="/login"
-                  className="text-neutral-600 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium"
+                  className="text-white hover:text-indigo-200 px-3 py-2 rounded-md text-sm font-medium"
                 >
                   로그인
                 </Link>
@@ -108,21 +116,23 @@ const MainLayout = () => {
             <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
               <Link
                 to="/"
-                className="block text-neutral-600 hover:text-primary-600 px-3 py-2 rounded-md text-base font-medium"
+                className="block text-white hover:text-indigo-200 px-3 py-2 rounded-md text-base font-medium"
                 onClick={() => setIsMenuOpen(false)}
               >
                 홈
               </Link>
-              <Link
-                to="/users"
-                className="block text-neutral-600 hover:text-primary-600 px-3 py-2 rounded-md text-base font-medium"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                유저 관리
-              </Link>
+              {isAdmin && isAuthenticated && (
+                <Link
+                  to="/users"
+                  className="block text-white hover:text-indigo-200 px-3 py-2 rounded-md text-base font-medium"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  유저 관리
+                </Link>
+              )}
               <Link
                 to="/sleep-tracker"
-                className="block text-neutral-600 hover:text-primary-600 px-3 py-2 rounded-md text-base font-medium"
+                className="block text-white hover:text-indigo-200 px-3 py-2 rounded-md text-base font-medium"
                 onClick={() => setIsMenuOpen(false)}
               >
                 수면 트래커
@@ -133,14 +143,14 @@ const MainLayout = () => {
                     logout();
                     setIsMenuOpen(false);
                   }}
-                  className="block w-full text-left text-neutral-600 hover:text-primary-600 px-3 py-2 rounded-md text-base font-medium"
+                  className="block w-full text-left text-white hover:text-indigo-200 px-3 py-2 rounded-md text-base font-medium"
                 >
                   로그아웃
                 </button>
               ) : (
                 <Link
                   to="/login"
-                  className="block text-neutral-600 hover:text-primary-600 px-3 py-2 rounded-md text-base font-medium"
+                  className="block text-white hover:text-indigo-200 px-3 py-2 rounded-md text-base font-medium"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   로그인
@@ -150,16 +160,41 @@ const MainLayout = () => {
           </div>
         </div>
       </header>
-      <main className="flex-grow">
+      <main className="flex-grow bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <Outlet />
         </div>
       </main>
-      <footer className="bg-white border-t border-neutral-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <p className="text-center text-neutral-500 text-sm">
-            &copy; {new Date().getFullYear()} 풀스택 보일러플레이트. All rights reserved.
-          </p>
+      <footer className="bg-indigo-700 text-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div>
+              <h3 className="text-lg font-semibold mb-4">수면 트래킹 서비스</h3>
+              <p className="text-indigo-200">
+                더 나은 수면 습관을 위한 최고의 트래킹 솔루션
+              </p>
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold mb-4">빠른 링크</h3>
+              <ul className="space-y-2">
+                <li><Link to="/" className="text-indigo-200 hover:text-white">홈</Link></li>
+                <li><Link to="/sleep-tracker" className="text-indigo-200 hover:text-white">수면 트래커</Link></li>
+                <li><Link to="/login" className="text-indigo-200 hover:text-white">로그인</Link></li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold mb-4">문의하기</h3>
+              <p className="text-indigo-200">
+                이메일: migusdn@gmail.com<br />
+                <a href="https://github.com/migusdn/migusdn-Solvr-Q6" className="text-indigo-200 hover:text-white">GitHub</a>
+              </p>
+            </div>
+          </div>
+          <div className="mt-8 pt-8 border-t border-indigo-600">
+            <p className="text-center text-indigo-200">
+              &copy; {new Date().getFullYear()} 수면 트래킹 서비스. All rights reserved.
+            </p>
+          </div>
         </div>
       </footer>
     </div>

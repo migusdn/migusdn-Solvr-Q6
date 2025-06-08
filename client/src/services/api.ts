@@ -1,7 +1,7 @@
 import axios from 'axios'
 import { User, CreateUserDto, UpdateUserDto } from '../types/user'
 import { SleepLog, CreateSleepLogDto, UpdateSleepLogDto, SleepLogFilters } from '../types/sleep-log'
-import { SleepStatsResponse, PeriodStat, SleepInsight, SleepStatsFilters } from '../types/sleep-stats'
+import { SleepStatsResponse, PeriodStat, SleepInsight, SleepStatsFilters, SleepAIAnalysis } from '../types/sleep-stats'
 import { getAccessToken } from '../utils/tokenUtils'
 
 // API 응답 타입
@@ -178,6 +178,24 @@ export const sleepStatsService = {
       throw new Error('수면 인사이트 정보를 불러오는데 실패했습니다.')
     }
     return response.data.data.insights || []
+  },
+
+  // AI 분석 데이터 조회
+  getAIAnalysis: async (): Promise<SleepAIAnalysis> => {
+    const response = await api.get<ApiResponse<SleepAIAnalysis>>('/sleep-stats/ai-analysis')
+    if (!response.data.data) {
+      throw new Error('AI 분석 데이터를 불러오는데 실패했습니다.')
+    }
+    return response.data.data
+  },
+
+  // AI 분석 데이터 새로고침
+  refreshAIAnalysis: async (): Promise<SleepAIAnalysis> => {
+    const response = await api.post<ApiResponse<SleepAIAnalysis>>('/sleep-stats/ai-analysis/refresh')
+    if (!response.data.data) {
+      throw new Error('AI 분석 데이터를 새로고침하는데 실패했습니다.')
+    }
+    return response.data.data
   }
 }
 

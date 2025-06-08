@@ -20,9 +20,23 @@ const LoginPage = () => {
     password?: string;
   }>({});
 
-  // 더미 데이터 자동 채우기
-  const fillDummyData = () => {
+  // 테스트 계정 자동 채우기 함수들
+  const fillAdminAccount = () => {
     setEmail('admin@example.com');
+    setPassword('test1234');
+    // 유효성 검사 오류 초기화
+    setValidationErrors({});
+  };
+
+  const fillUser1Account = () => {
+    setEmail('user1@example.com');
+    setPassword('test1234');
+    // 유효성 검사 오류 초기화
+    setValidationErrors({});
+  };
+
+  const fillUser2Account = () => {
+    setEmail('user2@example.com');
     setPassword('test1234');
     // 유효성 검사 오류 초기화
     setValidationErrors({});
@@ -137,14 +151,31 @@ const LoginPage = () => {
             </div>
           </div>
 
-          <div className="mt-4 mb-2">
-            <button
-              type="button"
-              onClick={fillDummyData}
-              className="group relative flex w-full justify-center rounded-md bg-gray-200 py-2 px-3 text-sm font-semibold text-gray-700 hover:bg-gray-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-400"
-            >
-              테스트 계정으로 자동 입력
-            </button>
+          <div className="mt-4 mb-2 space-y-2">
+            <p className="text-sm text-gray-600 font-medium">테스트 계정 자동 입력:</p>
+            <div className="grid grid-cols-3 gap-2">
+              <button
+                type="button"
+                onClick={fillAdminAccount}
+                className="group relative flex justify-center rounded-md bg-purple-100 py-2 px-3 text-sm font-semibold text-purple-700 hover:bg-purple-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-400"
+              >
+                관리자
+              </button>
+              <button
+                type="button"
+                onClick={fillUser1Account}
+                className="group relative flex justify-center rounded-md bg-blue-100 py-2 px-3 text-sm font-semibold text-blue-700 hover:bg-blue-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-400"
+              >
+                유저 1
+              </button>
+              <button
+                type="button"
+                onClick={fillUser2Account}
+                className="group relative flex justify-center rounded-md bg-green-100 py-2 px-3 text-sm font-semibold text-green-700 hover:bg-green-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-400"
+              >
+                유저 2
+              </button>
+            </div>
           </div>
 
           {error && (

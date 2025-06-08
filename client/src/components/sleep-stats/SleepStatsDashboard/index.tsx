@@ -7,10 +7,11 @@ import SleepDurationChart from '../SleepDurationChart'
 import SleepQualityChart from '../SleepQualityChart'
 import SleepPatternChart from '../SleepPatternChart'
 import SleepInsightCard from '../SleepInsightCard'
+import SleepAIAnalysisCard from '../SleepAIAnalysisCard'
 
 const SleepStatsDashboard: React.FC = () => {
   const { user } = useAuth()
-  const [period, setPeriod] = useState<string>('daily')
+  const [period, setPeriod] = useState<'daily' | 'weekly' | 'monthly' | 'yearly'>('daily')
   const [startDate, setStartDate] = useState<string>('')
   const [endDate, setEndDate] = useState<string>('')
   const [summaryData, setSummaryData] = useState<SleepStatsResponse | null>(null)
@@ -24,7 +25,7 @@ const SleepStatsDashboard: React.FC = () => {
     const today = new Date()
     const thirtyDaysAgo = new Date()
     thirtyDaysAgo.setDate(today.getDate() - 30)
-    
+
     setEndDate(today.toISOString().split('T')[0])
     setStartDate(thirtyDaysAgo.toISOString().split('T')[0])
   }, [])
@@ -82,7 +83,7 @@ const SleepStatsDashboard: React.FC = () => {
     const today = new Date()
     const thirtyDaysAgo = new Date()
     thirtyDaysAgo.setDate(today.getDate() - 30)
-    
+
     setEndDate(today.toISOString().split('T')[0])
     setStartDate(thirtyDaysAgo.toISOString().split('T')[0])
   }
@@ -160,6 +161,25 @@ const SleepStatsDashboard: React.FC = () => {
         </div>
       )}
 
+      {/* 인사이트 섹션 */}
+      {insights.length > 0 && (
+        <div className="bg-white rounded-lg shadow p-4">
+          <h3 className="text-lg font-medium mb-3">수면 인사이트</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {insights.map((insight, index) => (
+              <SleepInsightCard key={index} insight={insight} />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* AI 수면 분석 카드 */}
+      {summaryData && summaryData.summary.totalLogs > 0 && (
+        <div className="mt-6">
+          <SleepAIAnalysisCard />
+        </div>
+      )}
+
       {/* 차트 섹션 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* 수면 시간 차트 */}
@@ -214,17 +234,7 @@ const SleepStatsDashboard: React.FC = () => {
         </div>
       )}
 
-      {/* 인사이트 섹션 */}
-      {insights.length > 0 && (
-        <div className="bg-white rounded-lg shadow p-4">
-          <h3 className="text-lg font-medium mb-3">수면 인사이트</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {insights.map((insight, index) => (
-              <SleepInsightCard key={index} insight={insight} />
-            ))}
-          </div>
-        </div>
-      )}
+
 
       {/* 데이터가 없는 경우 */}
       {!loading && !error && (!summaryData || (summaryData.summary.totalLogs === 0)) && (

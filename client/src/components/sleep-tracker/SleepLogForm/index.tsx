@@ -115,17 +115,17 @@ export const SleepLogForm: React.FC<SleepLogFormProps> = ({ log, onSave, onCance
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6 max-w-md mx-auto">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold">
+    <div className="bg-white rounded-lg shadow-lg p-3 sm:p-6 max-w-md mx-auto">
+      <div className="flex justify-between items-center mb-3 sm:mb-4">
+        <h2 className="text-lg sm:text-xl font-semibold">
           {isEditMode ? '수면 기록 수정' : '새 수면 기록'}
         </h2>
         <button 
           onClick={onCancel}
-          className="text-gray-500 hover:text-gray-700 p-2 rounded-full hover:bg-gray-100"
+          className="text-gray-500 hover:text-gray-700 p-1 sm:p-2 rounded-full hover:bg-gray-100"
           aria-label="닫기"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
@@ -137,9 +137,9 @@ export const SleepLogForm: React.FC<SleepLogFormProps> = ({ log, onSave, onCance
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
         <div>
-          <label htmlFor="sleepTime" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="sleepTime" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
             취침 시간
           </label>
           <input
@@ -147,18 +147,18 @@ export const SleepLogForm: React.FC<SleepLogFormProps> = ({ log, onSave, onCance
             id="sleepTime"
             value={sleepTime}
             onChange={(e) => setSleepTime(e.target.value)}
-            className={`block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 py-3 px-4 text-base ${
+            className={`block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 py-2 sm:py-3 px-3 sm:px-4 text-sm sm:text-base ${
               validationErrors.sleepTime ? 'border-red-300' : ''
             }`}
             required
           />
           {validationErrors.sleepTime && (
-            <p className="mt-1 text-sm text-red-600">{validationErrors.sleepTime}</p>
+            <p className="mt-1 text-xs sm:text-sm text-red-600">{validationErrors.sleepTime}</p>
           )}
         </div>
 
         <div>
-          <label htmlFor="wakeTime" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="wakeTime" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
             기상 시간
           </label>
           <input
@@ -166,25 +166,25 @@ export const SleepLogForm: React.FC<SleepLogFormProps> = ({ log, onSave, onCance
             id="wakeTime"
             value={wakeTime}
             onChange={(e) => setWakeTime(e.target.value)}
-            className={`block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 py-3 px-4 text-base ${
+            className={`block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 py-2 sm:py-3 px-3 sm:px-4 text-sm sm:text-base ${
               validationErrors.wakeTime ? 'border-red-300' : ''
             }`}
             required
           />
           {validationErrors.wakeTime && (
-            <p className="mt-1 text-sm text-red-600">{validationErrors.wakeTime}</p>
+            <p className="mt-1 text-xs sm:text-sm text-red-600">{validationErrors.wakeTime}</p>
           )}
         </div>
 
         <div>
-          <label htmlFor="quality" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="quality" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
             수면 품질 (1-10)
           </label>
-          <div className="mt-2 mb-4">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-gray-500">나쁨</span>
-              <span className="text-lg font-medium">{quality}</span>
-              <span className="text-sm text-gray-500">좋음</span>
+          <div className="mt-1 sm:mt-2 mb-2 sm:mb-4">
+            <div className="flex items-center justify-between mb-1 sm:mb-2">
+              <span className="text-xs sm:text-sm text-gray-500">나쁨</span>
+              <span className="text-base sm:text-lg font-medium">{quality}</span>
+              <span className="text-xs sm:text-sm text-gray-500">좋음</span>
             </div>
             <input
               type="range"
@@ -193,7 +193,7 @@ export const SleepLogForm: React.FC<SleepLogFormProps> = ({ log, onSave, onCance
               max="10"
               value={quality}
               onChange={(e) => setQuality(parseInt(e.target.value))}
-              className="w-full h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+              className="w-full h-2 sm:h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer"
               style={{
                 WebkitAppearance: 'none',
                 appearance: 'none'
@@ -215,7 +215,7 @@ export const SleepLogForm: React.FC<SleepLogFormProps> = ({ log, onSave, onCance
         </div>
 
         <div>
-          <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="notes" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
             메모 (선택사항)
           </label>
           <textarea
@@ -223,16 +223,16 @@ export const SleepLogForm: React.FC<SleepLogFormProps> = ({ log, onSave, onCance
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             rows={3}
-            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 py-3 px-4 text-base"
+            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 py-2 sm:py-3 px-3 sm:px-4 text-sm sm:text-base"
             placeholder="수면에 관한 특이사항이나 메모를 입력하세요."
           />
         </div>
 
-        <div className="pt-4 flex flex-col sm:flex-row sm:justify-end space-y-3 sm:space-y-0 sm:space-x-3">
+        <div className="pt-3 sm:pt-4 flex flex-col sm:flex-row sm:justify-end space-y-2 sm:space-y-0 sm:space-x-3">
           <button
             type="button"
             onClick={onCancel}
-            className="w-full sm:w-auto px-4 py-3 sm:py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors text-base font-medium"
+            className="w-full sm:w-auto px-4 py-2.5 sm:py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors text-sm sm:text-base font-medium"
             aria-label="취소"
           >
             취소
@@ -240,7 +240,7 @@ export const SleepLogForm: React.FC<SleepLogFormProps> = ({ log, onSave, onCance
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full sm:w-auto px-4 py-3 sm:py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors disabled:opacity-50 text-base font-medium"
+            className="w-full sm:w-auto px-4 py-2.5 sm:py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors disabled:opacity-50 text-sm sm:text-base font-medium"
             aria-label={isSubmitting ? '저장 중...' : '저장'}
           >
             {isSubmitting ? '저장 중...' : '저장'}

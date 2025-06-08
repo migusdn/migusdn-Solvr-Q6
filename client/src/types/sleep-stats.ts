@@ -1,5 +1,30 @@
 // client/src/types/sleep-stats.ts
 
+// 수면 AI 분석 인터페이스
+export interface SleepAIAnalysis {
+  analysisId: string;
+  userId: string;
+  generatedAt: string;
+  sleepPattern: {
+    summary: string;
+    averageDuration: number;
+    qualityScore: number;
+    consistency: number;
+  };
+  insights: Array<{
+    type: 'strength' | 'improvement' | 'warning';
+    title: string;
+    description: string;
+    confidenceScore: number;
+  }>;
+  recommendations: Array<{
+    title: string;
+    description: string;
+    priority: 'high' | 'medium' | 'low';
+    actionable: boolean;
+  }>;
+}
+
 // 수면 통계 요약 인터페이스
 export interface SleepSummary {
   totalLogs: number
