@@ -3,6 +3,7 @@ import { eq, and, gte, lte, sql, count } from 'drizzle-orm'
 import { sleepLogs } from '../db/schema'
 import { CreateSleepLogDto, UpdateSleepLogDto, SleepLog, SleepLogFilterDto } from '../types'
 import { Database } from '../types/database'
+import { SQL } from 'drizzle-orm/sql'
 
 type SleepLogServiceDeps = {
   db: Database
@@ -21,37 +22,44 @@ export const createSleepLogService = ({ db }: SleepLogServiceDeps) => {
   const getSleepLogs = async (filter?: SleepLogFilterDto): Promise<{ data: SleepLog[]; total: number }> => {
     const { startDate, endDate, limit = 10, offset = 0 } = filter || {}
 
-    let query = db.select().from(sleepLogs)
-
-    // 날짜 필터 적용
-    let whereConditions = []
+    // 날짜 필터 조건 생성
+    const whereConditions: SQL<unknown>[] = []
 
     if (startDate && endDate) {
       whereConditions.push(
-        and(
-          gte(sleepLogs.sleepTime, startDate),
-          lte(sleepLogs.wakeTime, endDate)
-        )
-      )
+        sql`${sleepLogs.sleepTime} >= ${startDate} AND ${sleepLogs.wakeTime} <= ${endDate}`
+      );
     } else if (startDate) {
-      whereConditions.push(gte(sleepLogs.sleepTime, startDate))
+      whereConditions.push(sql`${sleepLogs.sleepTime} >= ${startDate}`)
     } else if (endDate) {
-      whereConditions.push(lte(sleepLogs.wakeTime, endDate))
+      whereConditions.push(sql`${sleepLogs.wakeTime} <= ${endDate}`)
     }
 
+    // 데이터 조회
+    let data: SleepLog[] = []
     if (whereConditions.length > 0) {
-      query = query.where(whereConditions.length === 1 ? whereConditions[0] : and(...whereConditions))
+      data = await db.select().from(sleepLogs)
+        .where(whereConditions.length === 1 ? whereConditions[0] : and(...whereConditions))
+        .limit(limit)
+        .offset(offset)
+    } else {
+      data = await db.select().from(sleepLogs)
+        .limit(limit)
+        .offset(offset)
     }
 
     // 전체 개수 조회
-    const countQuery = db.select({ count: count() }).from(sleepLogs)
-    const [{ count }] = await countQuery
+    let totalCount = 0
+    if (whereConditions.length > 0) {
+      const countResult = await db.select({ value: count() }).from(sleepLogs)
+        .where(whereConditions.length === 1 ? whereConditions[0] : and(...whereConditions))
+      totalCount = Number(countResult[0]?.value || 0)
+    } else {
+      const countResult = await db.select({ value: count() }).from(sleepLogs)
+      totalCount = Number(countResult[0]?.value || 0)
+    }
 
-    // 페이지네이션 적용
-    query = query.limit(limit).offset(offset)
-
-    const data = await query
-    return { data, total: Number(count) }
+    return { data, total: totalCount }
   }
 
   const getSleepLogById = async (id: number): Promise<SleepLog | undefined> => {
@@ -62,34 +70,31 @@ export const createSleepLogService = ({ db }: SleepLogServiceDeps) => {
   const getSleepLogsByUserId = async (userId: number, filter?: SleepLogFilterDto): Promise<{ data: SleepLog[]; total: number }> => {
     const { startDate, endDate, limit = 10, offset = 0 } = filter || {}
 
-    // 기본 조건: 사용자 ID로 필터링
-    let whereConditions = [eq(sleepLogs.userId, userId)]
+    // 조건 생성
+    const whereConditions: SQL<unknown>[] = [sql`${sleepLogs.userId} = ${userId}`]
 
-    // 날짜 필터 적용
     if (startDate && endDate) {
       whereConditions.push(
-        and(
-          gte(sleepLogs.sleepTime, startDate),
-          lte(sleepLogs.wakeTime, endDate)
-        )
-      )
+        sql`${sleepLogs.sleepTime} >= ${startDate} AND ${sleepLogs.wakeTime} <= ${endDate}`
+      );
     } else if (startDate) {
-      whereConditions.push(gte(sleepLogs.sleepTime, startDate))
+      whereConditions.push(sql`${sleepLogs.sleepTime} >= ${startDate}`)
     } else if (endDate) {
-      whereConditions.push(lte(sleepLogs.wakeTime, endDate))
+      whereConditions.push(sql`${sleepLogs.wakeTime} <= ${endDate}`)
     }
 
-    let query = db.select().from(sleepLogs).where(whereConditions.length === 1 ? whereConditions[0] : and(...whereConditions))
+    // 데이터 조회
+    const data = await db.select().from(sleepLogs)
+      .where(whereConditions.length === 1 ? whereConditions[0] : and(...whereConditions))
+      .limit(limit)
+      .offset(offset)
 
     // 전체 개수 조회
-    const countQuery = db.select({ count: count() }).from(sleepLogs).where(eq(sleepLogs.userId, userId))
-    const [{ count }] = await countQuery
+    const countResult = await db.select({ value: count() }).from(sleepLogs)
+      .where(whereConditions.length === 1 ? whereConditions[0] : and(...whereConditions))
+    const totalCount = Number(countResult[0]?.value || 0)
 
-    // 페이지네이션 적용
-    query = query.limit(limit).offset(offset)
-
-    const data = await query
-    return { data, total: Number(count) }
+    return { data, total: totalCount }
   }
 
   const createSleepLog = async (sleepLogData: CreateSleepLogDto): Promise<SleepLog> => {
